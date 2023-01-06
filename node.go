@@ -7,26 +7,22 @@ func Node(
 	pipes ...uint16,
 ) error {
 	var log = makeLog(n, 65536)
-	var instances = make([]uint64, COUNT)
-	for index, pipe := range pipes {
-		proposals, reason := TCP(address, int(pipe+1), addresses...)
-		if reason != nil {
-			return reason
-		}
-		states, reason := TCP(address, int(pipe+2), addresses...)
-		if reason != nil {
-			return reason
-		}
-		votes, reason := TCP(address, int(pipe+3), addresses...)
-		if reason != nil {
-			return reason
-		}
+	var instances = make([][]uint64, len(pipes))
+	//messages map ig?
 
-		var slot = uint16(0)
-		go func() {
-			reason := log.SMR(proposals, states, votes, func() (uint16, uint64) {
+	for i := 0; i < COUNT; i++ {
+		instances[i%len(pipes)] = append(instances[i%len(pipes)], uint64(i))
+	}
+
+	for index, pipe := range pipes {
+		go func(pipe int, instance []uint64) {
+			var slot = uint16(0)
+			proposals, reason := TCP(address, pipe+1, addresses...)
+			states, reason := TCP(address, pipe+2, addresses...)
+			votes, reason := TCP(address, pipe+3, addresses...)
+			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
 				var result uint64
-				result, instances = instances[0], instances[1:]
+				result, instance = instance[0], instance[1:]
 				return slot, result
 			}, func(slot uint16, message uint64) {
 				print("Ok working ig?")
@@ -35,7 +31,7 @@ func Node(
 				print("error")
 				print(reason)
 			}
-		}()
+		}(int(pipe), instances[index])
 	}
-
+	return nil
 }
