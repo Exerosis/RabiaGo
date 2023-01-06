@@ -1,0 +1,5 @@
+package Rabia
+
+func main() {
+
+}
