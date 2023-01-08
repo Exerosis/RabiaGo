@@ -49,6 +49,6 @@ func run() error {
 func main() {
 	var reason = run()
 	if reason != nil {
-		println("failed: ", reason)
+		fmt.Println("failed: ", reason)
 	}
 }
