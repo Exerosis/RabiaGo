@@ -91,14 +91,12 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 			return nil, fmt.Errorf("resolving remote %s:%d: %w", node, port, reason)
 		}
 
-	connect:
 		for {
-			println("trying to connect")
 			client, reason := net.DialTCP("tcp", nil, remote)
-			if reason != nil {
+			if reason == nil {
 				println("connected to ", client.RemoteAddr().String())
 				outbound[index] = client
-				break connect
+				break
 			}
 		}
 	}
