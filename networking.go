@@ -44,7 +44,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	return nil
 }
 func (tcp *TcpMulticaster) receive(buffer []byte) error {
-	connection := tcp.inbound[tcp.index]
+	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
 	_, reason := connection.Read(buffer)
 	if reason != nil {
 		return reason
