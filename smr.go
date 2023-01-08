@@ -12,6 +12,10 @@ import (
 // if new is less than current but not by a huge amount then it's old
 // if new is greater than current by a huge amount then it's old
 func isOld(a uint16, b uint16, half uint16) bool {
+	var test = a < b && (b-a) < half || a > b && (a-b) > half
+	if test {
+		println("Got an old one or something?")
+	}
 	return a < b && (b-a) < half || a > b && (a-b) > half
 }
 
@@ -43,6 +47,7 @@ outer:
 		info("Sent Proposal: %d - %d\n", proposed, current)
 		for log.indices[current] < log.majority {
 			reason := proposes.receive(buffer)
+			info("Got prop\n")
 			if reason != nil {
 				return reason
 			}
@@ -58,7 +63,6 @@ outer:
 				log.indices[depth]++
 			}
 		}
-		info("Moving to state\n")
 		var proposal = log.proposals[current<<shift]
 		var all = false
 		for i := uint16(1); i < log.majority; i++ {
@@ -92,6 +96,7 @@ outer:
 			}
 			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
 				reason := states.receive(buffer[3:])
+				info("Got state\n")
 				if reason != nil {
 					return reason
 				}
@@ -130,6 +135,7 @@ outer:
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
 				reason := votes.receive(buffer[3:])
+				info("Got vote\n")
 				if reason != nil {
 					return reason
 				}
