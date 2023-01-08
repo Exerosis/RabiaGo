@@ -71,18 +71,16 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	}
 	var group sync.WaitGroup
 	var reasons []error
-	group.Add(len(addresses))
+	group.Add(1)
 	go func() {
-		var i = 0
-		for {
+		defer group.Done()
+		for i := 0; len(inbound) < len(addresses); i++ {
 			client, reason := server.Accept()
 			if reason != nil {
 				reasons = append(reasons, reason)
-				continue
+				return
 			}
 			inbound[i] = client
-			group.Done()
-			i++
 		}
 	}()
 	for index, node := range addresses {
