@@ -75,6 +75,7 @@ func (log Log) SMR(
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
 			reason := states.send(buffer[3:])
+			fmt.Printf("Sent State: %d - %d(%d)", current, state, phase)
 			if reason != nil {
 				return reason
 			}
@@ -91,7 +92,10 @@ func (log Log) SMR(
 				if isOld(round, uint16(phase), 32) {
 					continue
 				}
-				if buffer[2]&3 == 1 {
+				var op = buffer[2] & 3
+				var total = log.statesZero[height] + log.statesOne[height]
+				fmt.Printf("Got State (%d/%d): %d - %d(%d)", total, log.majority, depth, op, round)
+				if op == 1 {
 					log.statesOne[depth<<8|round]++
 				} else {
 					log.statesZero[depth<<8|round]++
@@ -109,6 +113,7 @@ func (log Log) SMR(
 			log.statesOne[height] = 0
 			buffer[2] = vote
 			reason = votes.send(buffer[3:])
+			fmt.Printf("Sent Vote: %d - %d(%d)", current, vote, phase)
 			if reason != nil {
 				return reason
 			}
@@ -126,6 +131,8 @@ func (log Log) SMR(
 					continue
 				}
 				var op = buffer[2] & 3
+				var total = log.statesZero[height] + log.statesOne[height]
+				fmt.Printf("Got Vote (%d/%d): %d - %d(%d)", total, log.majority, depth, op, round)
 				if op == 1 {
 					log.votesOne[depth<<8|round]++
 				} else if op == 0 {
