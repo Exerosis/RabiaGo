@@ -36,7 +36,7 @@ func (log Log) SMR(
 		fmt.Printf("Sent Proposal: %d - %d\n", proposed, current)
 		for log.indices[current] < log.majority {
 			reason := proposes.receive(buffer)
-			fmt.Printf("Got Proposal")
+			fmt.Printf("Got Proposal\n")
 			if reason != nil {
 				return reason
 			}
