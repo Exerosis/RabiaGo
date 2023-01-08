@@ -145,7 +145,7 @@ func (log Log) SMR(
 					commit(current, 0)
 				}
 			} else if zero >= uint8(log.f+1) {
-				commit(current, -1)
+				commit(current, math.MaxUint64)
 			} else {
 				phase++
 				if one > 0 {
