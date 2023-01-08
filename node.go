@@ -4,6 +4,9 @@ import (
 	"fmt"
 )
 
+var current = uint16(0)
+var i = uint32(0)
+
 func Node(
 	n uint32,
 	address string,
@@ -19,8 +22,6 @@ func Node(
 	}
 	for index, pipe := range pipes {
 		go func(pipe int, instance []uint64) {
-			var current = uint16(0)
-			var i = uint32(0)
 			proposals, reason := TCP(address, uint16(pipe+1), addresses...)
 			states, reason := TCP(address, uint16(pipe+2), addresses...)
 			votes, reason := TCP(address, uint16(pipe+3), addresses...)
