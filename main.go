@@ -23,6 +23,7 @@ func run() error {
 			return reason
 		}
 		for _, a := range addresses {
+			fmt.Println(a)
 			if strings.Contains(a.String(), "192.168.1.") {
 				address = a
 				network = i
