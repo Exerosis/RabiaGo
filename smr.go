@@ -163,9 +163,6 @@ outer:
 			log.votesLost[height] = 0
 
 			info("Moving to end\n")
-			if zero > 0 {
-				info("Something wrong\n")
-			}
 
 			if one >= uint8(log.f+1) {
 				if all {

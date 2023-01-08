@@ -17,7 +17,6 @@ type TcpMulticaster struct {
 	inbound  []net.Conn
 	outbound []net.Conn
 	index    int
-	total    int
 }
 
 func (tcp *TcpMulticaster) send(buffer []byte) error {
@@ -25,15 +24,10 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var lock sync.Mutex
 	var reasons []error
 	group.Add(len(tcp.outbound))
-	tcp.total += len(tcp.outbound)
-	if tcp.total > 0 {
-		fmt.Printf("Total %d\n", tcp.total)
-	}
 	for _, connection := range tcp.outbound {
 		go func(connection net.Conn) {
 			defer group.Done()
 			_, reason := connection.Write(buffer)
-			tcp.total--
 			fmt.Println("Wrote for ", connection.RemoteAddr().String())
 			if reason != nil {
 				lock.Lock()
@@ -42,7 +36,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 			}
 		}(connection)
 	}
-	//group.Wait()
+	group.Wait()
 	if len(reasons) > 0 {
 		return reasons[0]
 	}
