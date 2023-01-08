@@ -31,6 +31,7 @@ func (log Log) SMR(
 	var buffer = make([]byte, 10)
 	var half = uint16(len(log.logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.majority)))) + 1
+outer:
 	for proposes.isOpen() {
 		current, proposed := messages()
 		LittleEndian.PutUint16(buffer[0:], current)
@@ -171,7 +172,9 @@ func (log Log) SMR(
 					rand.Seed(int64(height))
 					state = phase<<2 | uint8(rand.Intn(2))
 				}
+				continue
 			}
+			continue outer
 		}
 	}
 	return nil
