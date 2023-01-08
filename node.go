@@ -15,7 +15,7 @@ func Node(
 	for i := 0; i < COUNT; i++ {
 		instances[i%len(pipes)] = append(instances[i%len(pipes)], uint64(i))
 	}
-
+	fmt.Println("Pipes: ", pipes)
 	for index, pipe := range pipes {
 		go func(pipe int, instance []uint64) {
 			fmt.Println("Started Node: ", index)
