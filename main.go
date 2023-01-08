@@ -3,8 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
 	"net"
 	"strings"
+	"time"
 )
 
 var COUNT = 10_000_000
@@ -53,4 +55,5 @@ func main() {
 	if reason != nil {
 		fmt.Println("failed: ", reason)
 	}
+	time.Sleep(math.MaxUint64)
 }
