@@ -36,8 +36,7 @@ func Node(
 				print("Ok working ig?")
 			})
 			if reason != nil {
-				print("error")
-				print(reason)
+				fmt.Println("SMR death: ", reason)
 			}
 		}(int(pipe), instances[index])
 	}

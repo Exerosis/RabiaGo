@@ -36,14 +36,15 @@ func (log Log) SMR(
 		fmt.Printf("Sent Proposal: %d - %d\n", proposed, current)
 		for log.indices[current] < log.majority {
 			reason := proposes.receive(buffer)
-			fmt.Printf("Got Proposal\n")
 			if reason != nil {
 				return reason
 			}
 			var depth = LittleEndian.Uint16(buffer[0:])
+			fmt.Printf("Got Proposal: %d\n", depth)
 			if isOld(depth, current, half) {
 				continue
 			}
+			fmt.Printf("Wasn't old")
 			var proposal = LittleEndian.Uint64(buffer[2:])
 			var index = log.indices[depth]
 			if index < log.majority {
