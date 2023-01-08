@@ -79,7 +79,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 				reasons = append(reasons, reason)
 				continue
 			}
-			println("Got connection: ", client.RemoteAddr())
+			println("Got connection: ", client.RemoteAddr().String())
 			inbound[i] = client
 			group.Done()
 			i++
@@ -93,7 +93,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		for {
 			client, reason := net.DialTCP("tcp", nil, remote)
 			if reason != nil {
-				println("connected to ", client.RemoteAddr())
+				println("connected to ", client.RemoteAddr().String())
 				outbound[index] = client
 				break
 			}
