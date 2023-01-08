@@ -67,7 +67,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	if reason != nil {
 		return nil, reason
 	}
-	server, reason := net.Listen("tcp", address)
+	server, reason := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
 	if reason != nil {
 		println("maybe here instead?")
 		return nil, reason
