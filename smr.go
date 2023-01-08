@@ -40,10 +40,9 @@ outer:
 		if reason != nil {
 			return reason
 		}
-		info("Sent Proposal: %d - %d\n", proposed, current)
+		info("Sent Proposal: %d - %d\n", current, proposed)
 		for log.indices[current] < log.majority {
 			reason := proposes.receive(buffer)
-			info("Got prop\n")
 			if reason != nil {
 				return reason
 			}
@@ -52,7 +51,7 @@ outer:
 				continue
 			}
 			var proposal = LittleEndian.Uint64(buffer[2:])
-			info("Got Proposal(%d/%d): %d - %d\n", log.indices[depth]+1, log.majority, proposal, depth)
+			info("Got Proposal(%d/%d): %d - %d\n", log.indices[depth]+1, log.majority, depth, proposal)
 			var index = log.indices[depth]
 			if index < log.majority {
 				log.proposals[current<<shift|index] = proposal
@@ -92,7 +91,6 @@ outer:
 			}
 			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
 				reason := states.receive(buffer[3:])
-				info("Got state\n")
 				if reason != nil {
 					return reason
 				}
@@ -131,7 +129,6 @@ outer:
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
 				reason := votes.receive(buffer[3:])
-				info("Got vote\n")
 				if reason != nil {
 					return reason
 				}
