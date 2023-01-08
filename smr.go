@@ -51,13 +51,14 @@ outer:
 				continue
 			}
 			var proposal = LittleEndian.Uint64(buffer[2:])
-			info("Got Proposal(%d/%d): %d - %d\n", log.indices[depth]+1, log.majority, depth, proposal)
+			info("Got Proposal (%d/%d): %d - %d\n", log.indices[depth]+1, log.majority, depth, proposal)
 			var index = log.indices[depth]
 			if index < log.majority {
 				log.proposals[current<<shift|index] = proposal
 				log.indices[depth]++
 			}
 		}
+		info("Moving to state\n")
 		var proposal = log.proposals[current<<shift]
 		var all = false
 		for i := uint16(1); i < log.majority; i++ {
@@ -111,6 +112,7 @@ outer:
 					log.statesZero[depth<<8|round]++
 				}
 			}
+			info("Moving to vote\n")
 			var vote uint8
 			if log.statesOne[height] >= uint8(log.majority) {
 				vote = phase<<2 | 1
@@ -156,6 +158,11 @@ outer:
 			log.votesZero[height] = 0
 			log.votesOne[height] = 0
 			log.votesLost[height] = 0
+
+			info("Moving to end\n")
+			if zero > 0 {
+				info("Something wrong\n")
+			}
 
 			if one >= uint8(log.f+1) {
 				if all {
