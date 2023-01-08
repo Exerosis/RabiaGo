@@ -60,13 +60,16 @@ outer:
 		}
 		var proposal = log.proposals[current<<shift]
 		var all = false
-		for i := uint32(1); i < log.majority; i++ {
-			all = log.proposals[i] == proposal
+		for i := uint16(1); i < uint16(log.majority); i++ {
+			all = log.proposals[current<<shift|i] == proposal
 			if !all {
 				break
 			}
 		}
 		if !all {
+			for i := uint16(0); i < uint16(log.majority); i++ {
+				println(log.proposals[current<<shift|i])
+			}
 			return errors.New("very strange")
 		}
 		log.indices[current] = 0

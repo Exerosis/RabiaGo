@@ -30,9 +30,6 @@ func Node(
 			}
 			fmt.Println("Connected!")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
-				if uint64(current) != instance[i] {
-					println("problem ", current, " ", instance[i])
-				}
 				return current, instance[i]
 			}, func(slot uint16, message uint64) {
 				if i%AVERAGE == 0 {
