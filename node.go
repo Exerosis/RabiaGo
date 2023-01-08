@@ -33,8 +33,8 @@ func Node(
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
 				return current, instance[i]
 			}, func(slot uint16, message uint64) {
-				if slot%AVERAGE == 0 {
-					println(slot)
+				if current%AVERAGE == 0 {
+					println(current)
 				}
 				i++
 				current++
