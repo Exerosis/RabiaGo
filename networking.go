@@ -74,7 +74,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	group.Add(1)
 	go func() {
 		defer group.Done()
-		for i := 0; len(inbound) < len(addresses); i++ {
+		for i := 0; i < len(addresses); i++ {
 			client, reason := server.Accept()
 			if reason != nil {
 				reasons = append(reasons, reason)
