@@ -12,10 +12,6 @@ import (
 // if new is less than current but not by a huge amount then it's old
 // if new is greater than current by a huge amount then it's old
 func isOld(a uint16, b uint16, half uint16) bool {
-	var test = a < b && (b-a) < half || a > b && (a-b) > half
-	if test {
-		println("Got an old one or something?")
-	}
 	return a < b && (b-a) < half || a > b && (a-b) > half
 }
 
