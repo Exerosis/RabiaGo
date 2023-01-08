@@ -44,7 +44,7 @@ func Node(
 					var duration = time.Since(time.Unix(0, atomic.LoadInt64(&mark)))
 					atomic.StoreInt64(&mark, time.Now().UnixNano())
 					var throughput = float64(amount) / duration.Seconds()
-					fmt.Println("%,d", throughput)
+					fmt.Printf("%d\n", uint64(throughput))
 				}
 				i++
 				current++
