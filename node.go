@@ -19,8 +19,8 @@ func Node(
 	}
 	for index, pipe := range pipes {
 		go func(pipe int, instance []uint64) {
-			var slot = uint16(0)
-			var index = uint32(0)
+			var current = uint16(0)
+			var i = uint32(0)
 			proposals, reason := TCP(address, uint16(pipe+1), addresses...)
 			states, reason := TCP(address, uint16(pipe+2), addresses...)
 			votes, reason := TCP(address, uint16(pipe+3), addresses...)
@@ -30,13 +30,13 @@ func Node(
 			}
 			fmt.Println("Connected!")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
-				return slot, instance[index]
+				return current, instance[i]
 			}, func(slot uint16, message uint64) {
 				if slot%AVERAGE == 0 {
 					println(slot)
 				}
-				index++
-				slot++
+				i++
+				current++
 			})
 			if reason != nil {
 				fmt.Println("SMR death: ", reason)
