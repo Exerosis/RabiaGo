@@ -50,6 +50,7 @@ func (tcp TcpMulticaster) receive(buffer []byte) error {
 		return reason
 	}
 	tcp.index++
+	println("index: ", tcp.index)
 	return nil
 }
 func (tcp TcpMulticaster) close() error {
