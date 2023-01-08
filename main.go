@@ -10,7 +10,7 @@ import (
 
 const COUNT = 10_000_000
 const AVERAGE = 10_000
-const INFO = true
+const INFO = false
 
 func run() error {
 	interfaces, reason := net.Interfaces()
