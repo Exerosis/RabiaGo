@@ -77,6 +77,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 			if reason != nil {
 				println("timed out maybe?", reason)
 				reasons = append(reasons, reason)
+				continue
 			}
 			inbound[i] = client
 			group.Done()
