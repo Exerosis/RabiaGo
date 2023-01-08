@@ -85,20 +85,22 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 			i++
 		}
 	}()
-	//for index, node := range addresses {
-	//	remote, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", node, port))
-	//	if reason != nil {
-	//		return nil, fmt.Errorf("resolving remote %s:%d: %w", node, port, reason)
-	//	}
-	//	for {
-	//		client, reason := net.DialTCP("tcp", nil, remote)
-	//		if reason != nil {
-	//			println("connected to ", client.RemoteAddr().String())
-	//			outbound[index] = client
-	//			break
-	//		}
-	//	}
-	//}
+	for index, node := range addresses {
+		remote, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", node, port))
+		if reason != nil {
+			return nil, fmt.Errorf("resolving remote %s:%d: %w", node, port, reason)
+		}
+
+	connect:
+		for {
+			client, reason := net.DialTCP("tcp", nil, remote)
+			if reason != nil {
+				println("connected to ", client.RemoteAddr().String())
+				outbound[index] = client
+				break connect
+			}
+		}
+	}
 	group.Wait()
 	if len(reasons) > 0 {
 		return nil, reasons[0]
