@@ -119,7 +119,7 @@ func (log Log) SMR(
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
 				println("waiting for vote")
-				reason := states.receive(buffer[3:])
+				reason := votes.receive(buffer[3:])
 				if reason != nil {
 					return reason
 				}
