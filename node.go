@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func Node(
 	n uint32,
 	address string,
@@ -16,10 +18,12 @@ func Node(
 
 	for index, pipe := range pipes {
 		go func(pipe int, instance []uint64) {
+			fmt.Println("Started Node: ", index)
 			var slot = uint16(0)
 			proposals, reason := TCP(address, pipe+1, addresses...)
 			states, reason := TCP(address, pipe+2, addresses...)
 			votes, reason := TCP(address, pipe+3, addresses...)
+			fmt.Println("Connected!")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
 				var result uint64
 				result, instance = instance[0], instance[1:]
