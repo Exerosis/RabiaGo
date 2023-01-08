@@ -3,6 +3,7 @@ package main
 import (
 	. "encoding/binary"
 	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 )
@@ -32,9 +33,10 @@ func (log Log) SMR(
 		if reason != nil {
 			return reason
 		}
-
+		fmt.Printf("Sent Proposal: %d - %d\n", proposed, current)
 		for log.indices[current] < log.majority {
 			reason := proposes.receive(buffer)
+			fmt.Printf("Got Proposal")
 			if reason != nil {
 				return reason
 			}
