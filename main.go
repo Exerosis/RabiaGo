@@ -43,7 +43,7 @@ func run() error {
 		"192.168.1.2",
 		"192.168.1.3",
 	}
-	var pipes = make([]uint16, 1)
+	var pipes = make([]uint16, 2)
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
