@@ -17,11 +17,13 @@ func Node(
 	}
 	for index, pipe := range pipes {
 		go func(pipe int, instance []uint64) {
-			println("wtf")
 			var slot = uint16(0)
 			proposals, reason := TCP(address, pipe+1, addresses...)
 			states, reason := TCP(address, pipe+2, addresses...)
 			votes, reason := TCP(address, pipe+3, addresses...)
+			if reason != nil {
+				fmt.Println("Failed to connect: ", reason)
+			}
 			fmt.Println("Connected!")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
 				var result uint64
