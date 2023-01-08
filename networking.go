@@ -79,6 +79,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 				reasons = append(reasons, reason)
 				continue
 			}
+			println("Got connection: ", client.RemoteAddr())
 			inbound[i] = client
 			group.Done()
 			i++
