@@ -94,6 +94,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		}
 		client, reason := net.DialTCP("tcp", local, remote)
 		if reason != nil {
+			println("here ig?")
 			return nil, reason
 		}
 		outbound[index] = client
