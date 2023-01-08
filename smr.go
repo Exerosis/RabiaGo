@@ -58,7 +58,7 @@ outer:
 				log.indices[depth]++
 			}
 		}
-		info("Moving to state")
+		info("Moving to state\n")
 		var proposal = log.proposals[current<<shift]
 		var all = false
 		for i := uint16(1); i < log.majority; i++ {
