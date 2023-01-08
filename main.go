@@ -18,12 +18,13 @@ func run() error {
 	var network net.Interface
 	var address net.Addr
 	for _, i := range interfaces {
+		fmt.Println("Interface: ", i.Name)
 		addresses, reason := i.Addrs()
 		if reason != nil {
 			return reason
 		}
 		for _, a := range addresses {
-			fmt.Println(a)
+			fmt.Println("Address: ", a)
 			if strings.Contains(a.String(), "192.168.1.") {
 				address = a
 				network = i
