@@ -20,9 +20,9 @@ func Node(
 	for index, pipe := range pipes {
 		go func(pipe int, instance []uint64) {
 			var slot = uint16(0)
-			proposals, reason := TCP(address, pipe+1, addresses...)
-			states, reason := TCP(address, pipe+2, addresses...)
-			votes, reason := TCP(address, pipe+3, addresses...)
+			proposals, reason := TCP(address, uint16(pipe+1), addresses...)
+			states, reason := TCP(address, uint16(pipe+2), addresses...)
+			votes, reason := TCP(address, uint16(pipe+3), addresses...)
 			if reason != nil {
 				fmt.Println("Failed to connect: ", reason)
 				return
