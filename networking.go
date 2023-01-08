@@ -65,10 +65,12 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	var outbound = make([]net.Conn, len(addresses))
 	local, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", address, port))
 	if reason != nil {
+		println("Do we error here?")
 		return nil, reason
 	}
 	server, reason := net.ListenTCP("tcp", local)
 	if reason != nil {
+		println("maybe here instead?")
 		return nil, reason
 	}
 	var group sync.WaitGroup
