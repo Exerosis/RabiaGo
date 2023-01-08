@@ -15,6 +15,12 @@ func isOld(a uint16, b uint16, half uint16) bool {
 	return a < b && (b-a) < half || a > b && (a-b) > half
 }
 
+func info(format string, a ...any) {
+	if INFO {
+		fmt.Printf(format, a...)
+	}
+}
+
 func (log Log) SMR(
 	proposes Multicaster,
 	states Multicaster,
@@ -33,7 +39,7 @@ func (log Log) SMR(
 		if reason != nil {
 			return reason
 		}
-		fmt.Printf("Sent Proposal: %d - %d\n", proposed, current)
+		info("Sent Proposal: %d - %d\n", proposed, current)
 		for log.indices[current] < log.majority {
 			reason := proposes.receive(buffer)
 			if reason != nil {
@@ -44,7 +50,7 @@ func (log Log) SMR(
 				continue
 			}
 			var proposal = LittleEndian.Uint64(buffer[2:])
-			fmt.Printf("Got Proposal(%d/%d): %d - %d\n", log.indices[depth], log.majority, proposal, depth)
+			info("Got Proposal(%d/%d): %d - %d\n", log.indices[depth], log.majority, proposal, depth)
 			var index = log.indices[depth]
 			if index < log.majority {
 				log.proposals[index<<shift|index] = proposal
@@ -75,7 +81,7 @@ func (log Log) SMR(
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
 			reason := states.send(buffer[3:])
-			fmt.Printf("Sent State: %d(%d) - %d\n", current, phase, state)
+			info("Sent State: %d(%d) - %d\n", current, phase, state)
 			if reason != nil {
 				return reason
 			}
@@ -94,7 +100,7 @@ func (log Log) SMR(
 				}
 				var op = buffer[2] & 3
 				var total = log.statesZero[depth<<8|round] + log.statesOne[depth<<8|round]
-				fmt.Printf("Got State (%d/%d): %d(%d) - %d\n", total, log.majority, depth, round, op)
+				info("Got State (%d/%d): %d(%d) - %d\n", total, log.majority, depth, round, op)
 				if op == 1 {
 					log.statesOne[depth<<8|round]++
 				} else {
@@ -113,12 +119,11 @@ func (log Log) SMR(
 			log.statesOne[height] = 0
 			buffer[2] = vote
 			reason = votes.send(buffer[3:])
-			fmt.Printf("Sent Vote: %d(%d) - %d\n", current, phase, vote)
+			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
 				return reason
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
-				println("waiting for vote")
 				reason := votes.receive(buffer[3:])
 				if reason != nil {
 					return reason
@@ -133,7 +138,7 @@ func (log Log) SMR(
 				}
 				var op = buffer[2] & 3
 				var total = log.votesZero[depth<<8|round] + log.votesOne[depth<<8|round] + log.votesLost[depth<<8|round]
-				fmt.Printf("Got Vote (%d/%d): %d(%d) - %d\n", total, log.majority, depth, round, op)
+				info("Got Vote (%d/%d): %d(%d) - %d\n", total, log.majority, depth, round, op)
 				if op == 1 {
 					log.votesOne[depth<<8|round]++
 				} else if op == 0 {
