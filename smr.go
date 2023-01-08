@@ -77,7 +77,10 @@ func (log Log) SMR(
 				return reason
 			}
 			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
-				states.receive(buffer[:3])
+				reason := states.receive(buffer[:3])
+				if reason != nil {
+					return reason
+				}
 				var depth = LittleEndian.Uint16(buffer[0:])
 				if isOld(depth, current, half) {
 					continue
@@ -103,9 +106,15 @@ func (log Log) SMR(
 			log.statesZero[height] = 0
 			log.statesOne[height] = 0
 			buffer[2] = vote
-			votes.send(buffer[:3])
+			reason = votes.send(buffer[:3])
+			if reason != nil {
+				return reason
+			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
-				states.receive(buffer[:3])
+				reason := states.receive(buffer[:3])
+				if reason != nil {
+					return reason
+				}
 				var depth = LittleEndian.Uint16(buffer[0:])
 				if isOld(depth, current, half) {
 					continue
