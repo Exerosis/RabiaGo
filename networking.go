@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"time"
 )
 
 type Multicaster interface {
@@ -25,6 +26,10 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var reasons []error
 	group.Add(len(tcp.outbound))
 	for _, connection := range tcp.outbound {
+		reason := connection.SetDeadline(time.Now().Add(time.Second))
+		if reason != nil {
+			return reason
+		}
 		go func(connection net.Conn) {
 			defer group.Done()
 			_, reason := connection.Write(buffer)
