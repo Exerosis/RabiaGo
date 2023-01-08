@@ -65,7 +65,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	var outbound = make([]net.Conn, len(addresses))
 	local, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", address, port))
 	if reason != nil {
-		println("Do we error here?")
+		println(fmt.Sprintf("%s:%d", address, port))
 		return nil, reason
 	}
 	server, reason := net.ListenTCP("tcp", local)
