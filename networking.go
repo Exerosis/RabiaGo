@@ -49,6 +49,7 @@ func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	if reason != nil {
 		return reason
 	}
+	println(connection.RemoteAddr().String())
 	tcp.index++
 	return nil
 }
