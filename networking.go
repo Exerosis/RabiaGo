@@ -20,7 +20,7 @@ type TcpMulticaster struct {
 	index    int
 }
 
-func (tcp TcpMulticaster) send(buffer []byte) error {
+func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
 	var reasons []error
@@ -43,7 +43,7 @@ func (tcp TcpMulticaster) send(buffer []byte) error {
 	}
 	return nil
 }
-func (tcp TcpMulticaster) receive(buffer []byte) error {
+func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	println("index: ", tcp.index)
 	connection := tcp.inbound[tcp.index]
 	_, reason := connection.Read(buffer)
@@ -53,14 +53,14 @@ func (tcp TcpMulticaster) receive(buffer []byte) error {
 	tcp.index++
 	return nil
 }
-func (tcp TcpMulticaster) close() error {
+func (tcp *TcpMulticaster) close() error {
 	var reasons []error
 	for _, connection := range tcp.inbound {
 		reasons = append(reasons, connection.Close())
 	}
 	return reasons[0]
 }
-func (tcp TcpMulticaster) isOpen() bool {
+func (tcp *TcpMulticaster) isOpen() bool {
 	return true
 }
 
