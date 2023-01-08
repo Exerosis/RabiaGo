@@ -34,7 +34,7 @@ func run() error {
 	}
 
 	fmt.Printf("Interface: %s\n", network.Name)
-	fmt.Printf("Address: %s\n", address.String())
+	fmt.Printf("Address: %s\n", address)
 
 	var nodes = []string{
 		"192.168.1.1",
@@ -45,7 +45,7 @@ func run() error {
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
-	return Node(3, address.String(), nodes, pipes...)
+	return Node(3, strings.Split(address.String(), "/")[0], nodes, pipes...)
 }
 
 func main() {
