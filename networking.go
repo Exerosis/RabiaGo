@@ -65,12 +65,11 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	var outbound = make([]net.Conn, len(addresses))
 	local, reason := net.ResolveTCPAddr("tcp", address)
 	if reason != nil {
-		return nil, reason
+		return nil, fmt.Errorf("resolving local %s: %w", address, reason)
 	}
 	server, reason := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
 	if reason != nil {
-		println("maybe here instead?")
-		return nil, reason
+		return nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
 	}
 	var group sync.WaitGroup
 	var reasons []error
@@ -90,12 +89,12 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	for index, node := range addresses {
 		remote, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", node, port))
 		if reason != nil {
-			return nil, reason
+			return nil, fmt.Errorf("resolving remote %s:%d: %w", node, port, reason)
 		}
 		client, reason := net.DialTCP("tcp", local, remote)
 		if reason != nil {
 			println("here ig?")
-			return nil, reason
+			return nil, fmt.Errorf("connecting %s:%d: %w", node, port, reason)
 		}
 		outbound[index] = client
 	}
