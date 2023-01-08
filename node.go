@@ -16,10 +16,6 @@ func Node(
 		instances[i%len(pipes)] = append(instances[i%len(pipes)], uint64(i))
 	}
 	for index, pipe := range pipes {
-		println("pipe ", pipe)
-		go func() {
-			println("Test??")
-		}()
 		go func(pipe int, instance []uint64) {
 			println("wtf")
 			var slot = uint16(0)
