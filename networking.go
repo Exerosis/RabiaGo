@@ -38,7 +38,10 @@ func (tcp TcpMulticaster) send(buffer []byte) error {
 		}(connection)
 	}
 	group.Wait()
-	return reasons[0] //lol
+	if len(reasons) > 0 {
+		return reasons[0]
+	}
+	return nil
 }
 func (tcp TcpMulticaster) receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index]
@@ -75,11 +78,9 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		for {
 			client, reason := server.Accept()
 			if reason != nil {
-				println("timed out maybe?", reason)
 				reasons = append(reasons, reason)
 				continue
 			}
-			println("Got connection: ", client.RemoteAddr().String())
 			inbound[i] = client
 			group.Done()
 			i++
@@ -90,11 +91,9 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		if reason != nil {
 			return nil, fmt.Errorf("resolving remote %s:%d: %w", node, port, reason)
 		}
-
 		for {
 			client, reason := net.DialTCP("tcp", nil, remote)
 			if reason == nil {
-				println("connected to ", client.RemoteAddr().String())
 				outbound[index] = client
 				break
 			}
@@ -102,6 +101,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	}
 	group.Wait()
 	if len(reasons) > 0 {
+		//TODO join errors or whatever.
 		return nil, reasons[0]
 	}
 	return &TcpMulticaster{inbound: inbound, outbound: outbound}, nil
