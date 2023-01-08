@@ -51,13 +51,14 @@ outer:
 				continue
 			}
 			var proposal = LittleEndian.Uint64(buffer[2:])
-			info("Got Proposal(%d/%d): %d - %d\n", log.indices[depth], log.majority, proposal, depth)
+			info("Got Proposal(%d/%d): %d - %d\n", log.indices[depth]+1, log.majority, proposal, depth)
 			var index = log.indices[depth]
 			if index < log.majority {
 				log.proposals[current<<shift|index] = proposal
 				log.indices[depth]++
 			}
 		}
+		info("Moving to state")
 		var proposal = log.proposals[current<<shift]
 		var all = false
 		for i := uint16(1); i < log.majority; i++ {
@@ -104,7 +105,7 @@ outer:
 				}
 				var op = buffer[2] & 3
 				var total = log.statesZero[depth<<8|round] + log.statesOne[depth<<8|round]
-				info("Got State (%d/%d): %d(%d) - %d\n", total, log.majority, depth, round, op)
+				info("Got State (%d/%d): %d(%d) - %d\n", total+1, log.majority, depth, round, op)
 				if op == 1 {
 					log.statesOne[depth<<8|round]++
 				} else {
@@ -142,7 +143,7 @@ outer:
 				}
 				var op = buffer[2] & 3
 				var total = log.votesZero[depth<<8|round] + log.votesOne[depth<<8|round] + log.votesLost[depth<<8|round]
-				info("Got Vote (%d/%d): %d(%d) - %d\n", total, log.majority, depth, round, op)
+				info("Got Vote (%d/%d): %d(%d) - %d\n", total+1, log.majority, depth, round, op)
 				if op == 1 {
 					log.votesOne[depth<<8|round]++
 				} else if op == 0 {
