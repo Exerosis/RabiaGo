@@ -1,4 +1,4 @@
-package Rabia
+package main
 
 type Log struct {
 	n        uint32

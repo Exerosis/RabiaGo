@@ -1,4 +1,4 @@
-package Rabia
+package main
 
 import (
 	"errors"

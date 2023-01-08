@@ -1,4 +1,4 @@
-package Rabia
+package main
 
 func Node(
 	n uint32,
