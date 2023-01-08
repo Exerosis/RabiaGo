@@ -15,9 +15,9 @@ func isOld(a uint16, b uint16, half uint16) bool {
 }
 
 func (log Log) SMR(
-	proposes *TcpMulticaster,
-	states *TcpMulticaster,
-	votes *TcpMulticaster,
+	proposes Multicaster,
+	states Multicaster,
+	votes Multicaster,
 	messages func() (uint16, uint64),
 	commit func(uint16, uint64),
 ) error {

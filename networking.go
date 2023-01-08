@@ -60,7 +60,7 @@ func (tcp TcpMulticaster) isOpen() bool {
 	return true
 }
 
-func TCP(address string, port int, addresses ...string) (*TcpMulticaster, error) {
+func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, error) {
 	var inbound = make([]net.Conn, len(addresses))
 	var outbound = make([]net.Conn, len(addresses))
 	local, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", address, port))

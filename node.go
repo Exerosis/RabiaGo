@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func Node(
 	n uint32,
@@ -23,6 +25,7 @@ func Node(
 			votes, reason := TCP(address, pipe+3, addresses...)
 			if reason != nil {
 				fmt.Println("Failed to connect: ", reason)
+				return
 			}
 			fmt.Println("Connected!")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
