@@ -12,7 +12,7 @@ func Node(
 	addresses []string,
 	pipes ...uint16,
 ) error {
-	var log = makeLog(n, 65536)
+	var log = makeLog(n, uint32((65536/len(pipes))*len(pipes)))
 	var instances = make([][]uint64, len(pipes))
 	//messages map ig?
 
