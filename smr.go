@@ -15,7 +15,7 @@ func isOld(a uint16, b uint16, half uint16) bool {
 	return a < b && (b-a) < half || a > b && (a-b) > half
 }
 
-func info(format string, a ...any) {
+func info(format string, a ...interface{}) {
 	if INFO {
 		fmt.Printf(format, a...)
 	}
