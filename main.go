@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -30,7 +29,6 @@ func run() error {
 				network = i
 			}
 		}
-		return errors.New("couldn't find the network")
 	}
 
 	fmt.Printf("Interface: %s", network.Name)
