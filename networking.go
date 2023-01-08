@@ -75,6 +75,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		for {
 			client, reason := server.Accept()
 			if reason != nil {
+				println("timed out maybe?", reason)
 				reasons = append(reasons, reason)
 			}
 			inbound[i] = client
@@ -90,6 +91,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		for {
 			client, reason := net.DialTCP("tcp", nil, remote)
 			if reason != nil {
+				println("connected to ", client.RemoteAddr())
 				outbound[index] = client
 				break
 			}
