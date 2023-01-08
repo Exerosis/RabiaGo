@@ -36,6 +36,7 @@ outer:
 		current, proposed := messages()
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
+		info("sending prop\n")
 		reason := proposes.send(buffer)
 		if reason != nil {
 			return reason
@@ -85,6 +86,7 @@ outer:
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
+			info("sending state\n")
 			reason := states.send(buffer[3:])
 			info("Sent State: %d(%d) - %d\n", current, phase, state)
 			if reason != nil {
@@ -124,6 +126,7 @@ outer:
 			log.statesZero[height] = 0
 			log.statesOne[height] = 0
 			buffer[2] = vote
+			info("sending vote\n")
 			reason = votes.send(buffer[3:])
 			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
