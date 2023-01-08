@@ -54,20 +54,20 @@ outer:
 			info("Got Proposal(%d/%d): %d - %d\n", log.indices[depth], log.majority, proposal, depth)
 			var index = log.indices[depth]
 			if index < log.majority {
-				log.proposals[index<<shift|index] = proposal
+				log.proposals[current<<shift|index] = proposal
 				log.indices[depth]++
 			}
 		}
 		var proposal = log.proposals[current<<shift]
 		var all = false
-		for i := uint16(1); i < uint16(log.majority); i++ {
+		for i := uint16(1); i < log.majority; i++ {
 			all = log.proposals[current<<shift|i] == proposal
 			if !all {
 				break
 			}
 		}
 		if !all {
-			for i := uint16(0); i < uint16(log.majority); i++ {
+			for i := uint16(0); i < log.majority; i++ {
 				println(log.proposals[current<<shift|i])
 			}
 			return errors.New("very strange")

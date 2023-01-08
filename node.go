@@ -5,7 +5,7 @@ import (
 )
 
 func Node(
-	n uint32,
+	n uint16,
 	address string,
 	addresses []string,
 	pipes ...uint16,
