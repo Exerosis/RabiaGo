@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net"
 	"sync"
 )
@@ -26,14 +25,14 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var reasons []error
 	group.Add(len(tcp.outbound))
 	for _, connection := range tcp.outbound {
-		go func(connection io.Writer) {
+		go func(connection net.Conn) {
 			defer group.Done()
 			_, reason := connection.Write(buffer)
+			fmt.Println("Wrote for ", connection.RemoteAddr().String())
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
 				reasons = append(reasons, reason)
-				return
 			}
 		}(connection)
 	}
