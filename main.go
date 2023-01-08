@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -28,9 +29,12 @@ func run() error {
 			}
 		}
 	}
+	if address == nil {
+		return errors.New("couldn't find interface")
+	}
 
-	fmt.Printf("Interface: %s", network.Name)
-	fmt.Printf("Address: %s", address)
+	fmt.Printf("Interface: %s\n", network.Name)
+	fmt.Printf("Address: %s\n", address)
 
 	var nodes = []string{
 		"192.168.1.1",

@@ -17,6 +17,9 @@ func Node(
 	}
 	for index, pipe := range pipes {
 		println("pipe ", pipe)
+		go func() {
+			println("Test??")
+		}()
 		go func(pipe int, instance []uint64) {
 			println("wtf")
 			var slot = uint16(0)
