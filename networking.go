@@ -63,12 +63,11 @@ func (tcp TcpMulticaster) isOpen() bool {
 func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, error) {
 	var inbound = make([]net.Conn, len(addresses))
 	var outbound = make([]net.Conn, len(addresses))
-	local, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", address, port))
+	local, reason := net.ResolveTCPAddr("tcp", address)
 	if reason != nil {
-		println(fmt.Sprintf("%s:%d", address, port))
 		return nil, reason
 	}
-	server, reason := net.ListenTCP("tcp", local)
+	server, reason := net.Listen("tcp", address)
 	if reason != nil {
 		println("maybe here instead?")
 		return nil, reason
