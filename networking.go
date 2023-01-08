@@ -87,12 +87,10 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		if reason != nil {
 			return nil, fmt.Errorf("resolving remote %s:%d: %w", node, port, reason)
 		}
-		client, reason := net.DialTCP("tcp", nil, remote)
-		if reason != nil {
-			println("here ig?")
-			return nil, fmt.Errorf("connecting %s:%d: %w", node, port, reason)
+		for {
+			client, _ := net.DialTCP("tcp", nil, remote)
+			outbound[index] = client
 		}
-		outbound[index] = client
 	}
 	group.Wait()
 	if len(reasons) > 0 {

@@ -7,8 +7,9 @@ import (
 	"strings"
 )
 
-var COUNT = 10_000_000
-var AVERAGE = 10_000
+const COUNT = 10_000_000
+const AVERAGE = 10_000
+const debug = true
 
 func run() error {
 	interfaces, reason := net.Interfaces()
