@@ -34,7 +34,7 @@ func run() error {
 	}
 
 	fmt.Printf("Interface: %s\n", network.Name)
-	fmt.Printf("Address: %s\n", address)
+	fmt.Printf("Address: %s\n", address.String())
 
 	var nodes = []string{
 		"192.168.1.1",
