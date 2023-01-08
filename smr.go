@@ -74,12 +74,12 @@ func (log Log) SMR(
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
-			reason := states.send(buffer[:3])
+			reason := states.send(buffer[3:])
 			if reason != nil {
 				return reason
 			}
 			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
-				reason := states.receive(buffer[:3])
+				reason := states.receive(buffer[3:])
 				if reason != nil {
 					return reason
 				}
@@ -108,12 +108,12 @@ func (log Log) SMR(
 			log.statesZero[height] = 0
 			log.statesOne[height] = 0
 			buffer[2] = vote
-			reason = votes.send(buffer[:3])
+			reason = votes.send(buffer[3:])
 			if reason != nil {
 				return reason
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
-				reason := states.receive(buffer[:3])
+				reason := states.receive(buffer[3:])
 				if reason != nil {
 					return reason
 				}
