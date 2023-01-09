@@ -35,7 +35,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 				_ = connection.SetDeadline(time.Now().Add(time.Second))
 				justinCase := len(buffer)
 				fmt.Printf("Buffer Size: %d\n", justinCase)
-				if justinCase != 10 || justinCase != 3 {
+				if justinCase != 10 && justinCase != 3 {
 					panic("Wrong sizes")
 				}
 				_, reason := connection.Write(buffer)
