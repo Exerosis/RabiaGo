@@ -1,6 +1,7 @@
 package main
 
 type Log struct {
+	size     uint32
 	n        uint16
 	f        uint16
 	majority uint16
@@ -21,7 +22,7 @@ type Log struct {
 func makeLog(n uint16, size uint32) *Log {
 	var majority = (n / 2) + 1
 	return &Log{
-		n, n / 2, majority,
+		size, n, n / 2, majority,
 		make([]uint64, size),
 		make([]uint16, size),
 		make([]uint64, uint32(majority)*size),

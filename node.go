@@ -39,7 +39,7 @@ func Node(
 			}
 			info("Connected!\n")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
-				return uint16(current % uint32(len(log.logs))), instance[current]
+				return uint16(current % log.size), instance[current]
 			}, func(slot uint16, message uint64) {
 				var amount = atomic.AddUint32(&count, 1)
 				for amount >= AVERAGE && !atomic.CompareAndSwapUint32(&count, amount, 0) {
