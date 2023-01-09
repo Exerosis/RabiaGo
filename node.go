@@ -79,13 +79,14 @@ func Node(
 				current += uint32(len(pipes))
 				return nil
 			}, info)
-			println("Got error ", reason)
+			fmt.Printf("Got error %s", reason)
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
 				var result = fmt.Errorf("running smr pipe %d: %s", index, reason)
 				reasons = multierr.Append(reasons, result)
 			}
+			return
 		}(index, pipe, instances[index])
 	}
 	group.Wait()
