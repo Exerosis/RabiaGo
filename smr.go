@@ -121,13 +121,13 @@ outer:
 			log.statesOne[height] = 0
 			buffer[2] = vote
 			info("sending vote\n")
-			reason = votes.send(buffer[:4])
+			reason = votes.send(buffer[:3])
 			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
 				return reason
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
-				reason := votes.receive(buffer[:4])
+				reason := votes.receive(buffer[:3])
 				if reason != nil {
 					return reason
 				}
