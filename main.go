@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	_ "net/http/pprof"
+	"os"
+	"runtime/pprof"
 	"strings"
 )
 
@@ -64,15 +66,16 @@ func run() error {
 }
 
 func main() {
-	//var test = make([]int, 10)
-	//for i := range test {
-	//	test[i] = i
-	//}
-	//var slice = test[4:]
-	//for i := range slice {
-	//	println(slice[i])
-	//}
-	var reason = run()
+	file, reason := os.Create("cpu.pprof")
+	if reason != nil {
+		fmt.Println("failed: ", reason)
+	}
+	reason = pprof.StartCPUProfile(file)
+	if reason != nil {
+		fmt.Println("failed: ", reason)
+	}
+	defer pprof.StopCPUProfile()
+	reason = run()
 	if reason != nil {
 		fmt.Println("failed: ", reason)
 	}
