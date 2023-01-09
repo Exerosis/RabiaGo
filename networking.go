@@ -34,13 +34,13 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 			for {
 				_ = connection.SetDeadline(time.Now().Add(time.Second))
 				justinCase := len(buffer)
-				fmt.Printf("Buffer Size: %d\n", justinCase)
+				//fmt.Printf("Buffer Size: %d\n", justinCase)
 				if justinCase != 10 && justinCase != 3 {
 					panic("Wrong sizes")
 				}
 				_, reason := connection.Write(buffer)
 				if reason == nil {
-					fmt.Println("Wrote for ", connection.RemoteAddr().String())
+					//fmt.Println("Wrote for ", connection.RemoteAddr().String())
 					break
 				} else {
 					fmt.Printf("Timed out %s\n", connection.RemoteAddr().String())
@@ -59,7 +59,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 }
 func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
-	fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
+	//fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
 	_, reason := connection.Read(buffer)
 	if reason != nil {
 		return reason
