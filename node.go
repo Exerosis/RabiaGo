@@ -14,6 +14,7 @@ func Node(
 	pipes ...uint16,
 ) error {
 	var group sync.WaitGroup
+	group.Add(len(pipes))
 	var log = makeLog(n, uint32((65536/len(pipes))*len(pipes)))
 	var instances = make([][]uint64, len(pipes))
 	//messages map ig?
