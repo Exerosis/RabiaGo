@@ -21,7 +21,7 @@ type TcpMulticaster struct {
 
 func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var group sync.WaitGroup
-	//var lock sync.Mutex
+	var lock sync.Mutex
 	var reasons []error
 	//var cloned = make([]byte, len(buffer))
 	//copy(cloned, buffer)
@@ -31,13 +31,11 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 			defer group.Done()
 			_, reason := connection.Write(buffer)
 			fmt.Println("Wrote for ", connection.RemoteAddr().String())
-			fmt.Printf("Timed out! %s %s\n", reason, connection.RemoteAddr().String())
-
-			//if reason != nil {
-			//	lock.Lock()
-			//	defer lock.Unlock()
-			//	reasons = append(reasons, reason)
-			//}
+			if reason != nil {
+				lock.Lock()
+				defer lock.Unlock()
+				reasons = append(reasons, reason)
+			}
 		}(connection)
 	}
 	group.Wait()
