@@ -30,6 +30,7 @@ func Node(
 	for index, pipe := range pipes {
 		go func(index int, pipe uint16, instance []uint64) {
 			defer group.Done()
+			fmt.Println("Instance Length: ", len(instance))
 			var info = func(format string, a ...interface{}) {
 				if INFO {
 					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)
@@ -48,6 +49,9 @@ func Node(
 			info("Connected!\n")
 			var test = 0
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
+				if i >= len(instance) {
+					panic("Done")
+				}
 				return uint16(current % log.size), instance[i]
 			}, func(slot uint16, message uint64) {
 				if instance[test] != message {

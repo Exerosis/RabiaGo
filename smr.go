@@ -18,8 +18,8 @@ func (log Log) SMR(
 	proposes Multicaster,
 	states Multicaster,
 	votes Multicaster,
-	messages func() (uint16, uint64),
-	commit func(uint16, uint64),
+	messages func() (uint16, uint64, error),
+	commit func(uint16, uint64) error,
 	info func(string, ...interface{}),
 ) error {
 	var buffer = make([]byte, 10)
@@ -27,11 +27,14 @@ func (log Log) SMR(
 	var shift = uint32(math.Floor(math.Log2(float64(log.majority)))) + 1
 outer:
 	for proposes.isOpen() {
-		current, proposed := messages()
+		current, proposed, reason := messages()
+		if reason != nil {
+			return reason
+		}
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
 		info("sending prop\n")
-		reason := proposes.send(buffer[:10])
+		reason = proposes.send(buffer[:10])
 		if reason != nil {
 			return reason
 		}
@@ -164,12 +167,21 @@ outer:
 
 			if one >= uint8(log.f+1) {
 				if all {
-					commit(current, proposal)
+					reason = commit(current, proposal)
+					if reason != nil {
+						return reason
+					}
 				} else {
-					commit(current, 0)
+					reason = commit(current, 0)
+					if reason != nil {
+						return reason
+					}
 				}
 			} else if zero >= uint8(log.f+1) {
-				commit(current, math.MaxUint64)
+				reason = commit(current, math.MaxUint64)
+				if reason != nil {
+					return reason
+				}
 			} else {
 				phase++
 				if one > 0 {
