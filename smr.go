@@ -156,6 +156,10 @@ outer:
 			log.votesOne[height] = 0
 			log.votesLost[height] = 0
 
+			if one != 2 && zero != 0 {
+				panic("bad bad")
+			}
+
 			info("Moving to end\n")
 
 			if one >= uint8(log.f+1) {
