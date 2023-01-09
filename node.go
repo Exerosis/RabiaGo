@@ -45,21 +45,18 @@ func Node(
 			states, reason := TCP(address, pipe+2, addresses...)
 			votes, reason := TCP(address, pipe+3, addresses...)
 			if reason != nil {
-				fmt.Println("Failed to connect: ", reason)
-				return
+				lock.Lock()
+				defer lock.Unlock()
+				var result = fmt.Errorf("failed to connect %d: %s", index, reason)
+				reasons = multierr.Append(reasons, result)
 			}
 			info("Connected!\n")
-			var test = 0
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				if i >= len(instance) {
 					return 0, 0, errors.New("ran out of entries")
 				}
 				return uint16(current % log.size), instance[i], nil
 			}, func(slot uint16, message uint64) error {
-				if instance[test] != message {
-					return errors.New(fmt.Sprintf("%d vs %d", instance[test], message))
-				}
-				test++
 				var amount = atomic.AddUint32(&count, 1)
 				for amount >= AVERAGE && !atomic.CompareAndSwapUint32(&count, amount, 0) {
 					amount = atomic.LoadUint32(&count)

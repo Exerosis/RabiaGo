@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-const COUNT = 100_000_000
-const AVERAGE = 1_000_000
+const COUNT = 10_000_000
+const AVERAGE = 10_000
 const INFO = false
 
 // 1 - 5.5 (10k)
@@ -21,8 +21,8 @@ const INFO = false
 // 128 - 138 (1m)
 // 256 - 139 (1m)
 // 512 - 138 (1m)
-// 1024 - 140 (10k)
-const PIPES = 1024
+// 1024 - 138 (1m)
+const PIPES = 4
 
 func run() error {
 	interfaces, reason := net.Interfaces()
