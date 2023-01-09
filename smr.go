@@ -81,13 +81,13 @@ outer:
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
 			info("sending state\n")
-			reason := states.send(buffer[:4])
+			reason := states.send(buffer[:3])
 			info("Sent State: %d(%d) - %d\n", current, phase, state)
 			if reason != nil {
 				return reason
 			}
 			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
-				reason := states.receive(buffer[:4])
+				reason := states.receive(buffer[:3])
 				if reason != nil {
 					return reason
 				}
