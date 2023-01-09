@@ -25,7 +25,7 @@ func Node(
 		go func(pipe int, instance []uint64) {
 			var info = func(format string, a ...interface{}) {
 				if INFO {
-					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", pipe, format), a...)
+					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)
 				}
 			}
 
@@ -38,7 +38,7 @@ func Node(
 				fmt.Println("Failed to connect: ", reason)
 				return
 			}
-			info("Connected!")
+			info("Connected!\n")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
 				return current, instance[i]
 			}, func(slot uint16, message uint64) {
