@@ -32,7 +32,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 		go func(connection net.Conn) {
 			defer group.Done()
 			_, reason := connection.Write(buffer)
-			fmt.Println("Wrote for ", connection.RemoteAddr().String())
+			//fmt.Println("Wrote for ", connection.RemoteAddr().String())
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
@@ -45,7 +45,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 }
 func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
-	fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
+	//fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
 	_, reason := connection.Read(buffer)
 	if reason != nil {
 		return reason
