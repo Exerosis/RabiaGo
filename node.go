@@ -29,8 +29,7 @@ func Node(
 				}
 			}
 
-			var current = uint16(0)
-			var i = uint32(0)
+			var current = uint32(index)
 			proposals, reason := TCP(address, uint16(pipe+1), addresses...)
 			states, reason := TCP(address, uint16(pipe+2), addresses...)
 			votes, reason := TCP(address, uint16(pipe+3), addresses...)
@@ -40,7 +39,7 @@ func Node(
 			}
 			info("Connected!\n")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
-				return current, instance[i]
+				return uint16(current % uint32(len(log.logs))), instance[current]
 			}, func(slot uint16, message uint64) {
 				var amount = atomic.AddUint32(&count, 1)
 				for amount >= AVERAGE && !atomic.CompareAndSwapUint32(&count, amount, 0) {
@@ -52,7 +51,6 @@ func Node(
 					var throughput = float64(amount) / duration.Seconds()
 					fmt.Printf("%d\n", uint64(throughput))
 				}
-				i++
 				current++
 			}, info)
 			if reason != nil {
