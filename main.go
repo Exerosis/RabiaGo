@@ -15,7 +15,9 @@ const INFO = false
 // 2 - 13
 // 8 - 55
 // 16 - 83
-const PIPES = 512
+
+// 512 - 140
+const PIPES = 1024
 
 func run() error {
 	interfaces, reason := net.Interfaces()
