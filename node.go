@@ -67,13 +67,10 @@ func Node(
 					if reason != nil {
 						return reason
 					}
-					for _, f := range percent {
-						fmt.Printf("%.2f\n", f)
-					}
 					var duration = time.Since(time.Unix(0, atomic.LoadInt64(&mark)))
 					atomic.StoreInt64(&mark, time.Now().UnixNano())
 					var throughput = float64(amount) / duration.Seconds()
-					fmt.Printf("%d\n", uint64(throughput))
+					fmt.Printf("%d - %.2f\n", uint32(throughput), percent)
 				}
 				i++
 				if i == len(instance)-1 {
