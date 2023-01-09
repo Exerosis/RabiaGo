@@ -23,6 +23,12 @@ func Node(
 	var count = uint32(0)
 	for index, pipe := range pipes {
 		go func(pipe int, instance []uint64) {
+			var info = func(format string, a ...interface{}) {
+				if INFO {
+					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", pipe, format), a...)
+				}
+			}
+
 			var current = uint16(0)
 			var i = uint32(0)
 			proposals, reason := TCP(address, uint16(pipe+1), addresses...)
@@ -32,7 +38,7 @@ func Node(
 				fmt.Println("Failed to connect: ", reason)
 				return
 			}
-			fmt.Println("Connected!")
+			info("Connected!")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
 				return current, instance[i]
 			}, func(slot uint16, message uint64) {
@@ -48,9 +54,9 @@ func Node(
 				}
 				i++
 				current++
-			})
+			}, info)
 			if reason != nil {
-				fmt.Println("SMR death: ", reason)
+				info("SMR death: ", reason)
 			}
 		}(int(pipe), instances[index])
 	}

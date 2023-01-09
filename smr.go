@@ -3,7 +3,6 @@ package main
 import (
 	. "encoding/binary"
 	"errors"
-	"fmt"
 	"math"
 	"math/rand"
 )
@@ -15,18 +14,13 @@ func isOld(a uint16, b uint16, half uint16) bool {
 	return a < b && (b-a) < half || a > b && (a-b) > half
 }
 
-func info(format string, a ...interface{}) {
-	if INFO {
-		fmt.Printf(format, a...)
-	}
-}
-
 func (log Log) SMR(
 	proposes Multicaster,
 	states Multicaster,
 	votes Multicaster,
 	messages func() (uint16, uint64),
 	commit func(uint16, uint64),
+	info func(string, ...interface{}),
 ) error {
 	var buffer = make([]byte, 10)
 	var half = uint16(len(log.logs) / 2)
