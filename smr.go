@@ -31,13 +31,13 @@ outer:
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
 		info("sending prop\n")
-		reason := proposes.send(buffer)
+		reason := proposes.send(buffer[10:])
 		if reason != nil {
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", current, proposed)
 		for log.indices[current] < log.majority {
-			reason := proposes.receive(buffer)
+			reason := proposes.receive(buffer[10:])
 			if reason != nil {
 				return reason
 			}
