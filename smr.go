@@ -31,13 +31,13 @@ outer:
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
 		info("sending prop\n")
-		reason := proposes.send(buffer[:9])
+		reason := proposes.send(buffer)
 		if reason != nil {
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", current, proposed)
 		for log.indices[current] < log.majority {
-			reason := proposes.receive(buffer[:9])
+			reason := proposes.receive(buffer)
 			if reason != nil {
 				return reason
 			}
@@ -81,13 +81,13 @@ outer:
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
 			info("sending state\n")
-			reason := states.send(buffer[:3])
+			reason := states.send(buffer[:4])
 			info("Sent State: %d(%d) - %d\n", current, phase, state)
 			if reason != nil {
 				return reason
 			}
 			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
-				reason := states.receive(buffer[:3])
+				reason := states.receive(buffer[:4])
 				if reason != nil {
 					return reason
 				}
@@ -121,13 +121,13 @@ outer:
 			log.statesOne[height] = 0
 			buffer[2] = vote
 			info("sending vote\n")
-			reason = votes.send(buffer[:3])
+			reason = votes.send(buffer[:4])
 			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
 				return reason
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
-				reason := votes.receive(buffer[:3])
+				reason := votes.receive(buffer[:4])
 				if reason != nil {
 					return reason
 				}
