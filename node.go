@@ -22,7 +22,7 @@ func Node(
 	var mark = time.Now().UnixNano()
 	var count = uint32(0)
 	for index, pipe := range pipes {
-		go func(pipe int, instance []uint64) {
+		go func(index int, pipe uint16, instance []uint64) {
 			var info = func(format string, a ...interface{}) {
 				if INFO {
 					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)
@@ -30,9 +30,9 @@ func Node(
 			}
 
 			var current = uint32(index)
-			proposals, reason := TCP(address, uint16(pipe+1), addresses...)
-			states, reason := TCP(address, uint16(pipe+2), addresses...)
-			votes, reason := TCP(address, uint16(pipe+3), addresses...)
+			proposals, reason := TCP(address, pipe+1, addresses...)
+			states, reason := TCP(address, pipe+2, addresses...)
+			votes, reason := TCP(address, pipe+3, addresses...)
 			if reason != nil {
 				fmt.Println("Failed to connect: ", reason)
 				return
@@ -56,7 +56,7 @@ func Node(
 			if reason != nil {
 				info("SMR Crash: %s\n", reason)
 			}
-		}(int(pipe), instances[index])
+		}(index, pipe, instances[index])
 	}
 	return nil
 }
