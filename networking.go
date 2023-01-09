@@ -26,7 +26,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var reasons []error
 	//var cloned = make([]byte, len(buffer))
 	//copy(cloned, buffer)
-	group.Add(len(tcp.outbound) - 1)
+	group.Add(len(tcp.outbound))
 	for _, connection := range tcp.outbound {
 		go func(connection net.Conn) {
 			defer group.Done()
