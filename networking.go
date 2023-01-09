@@ -5,6 +5,7 @@ import (
 	"go.uber.org/multierr"
 	"net"
 	"sync"
+	"time"
 )
 
 type Multicaster interface {
@@ -66,7 +67,11 @@ func (tcp *TcpMulticaster) isOpen() bool {
 func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, error) {
 	var inbound = make([]net.Conn, len(addresses))
 	var outbound = make([]net.Conn, len(addresses))
-	server, reason := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
+	local, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", address, port))
+	if reason != nil {
+		return nil, fmt.Errorf("resolving server address %s:%d: %w", address, port, reason)
+	}
+	server, reason := net.ListenTCP("tcp", local)
 	if reason != nil {
 		return nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
 	}
@@ -76,7 +81,17 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	go func() {
 		defer group.Done()
 		for i := 0; i < len(addresses); i++ {
-			client, reason := server.Accept()
+			client, reason := server.AcceptTCP()
+			if reason != nil {
+				reasons = multierr.Append(reasons, reason)
+				return
+			}
+			reason = client.SetKeepAlive(true)
+			if reason != nil {
+				reasons = multierr.Append(reasons, reason)
+				return
+			}
+			reason = client.SetKeepAlivePeriod(time.Second)
 			if reason != nil {
 				reasons = multierr.Append(reasons, reason)
 				return
@@ -92,6 +107,14 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		for {
 			client, reason := net.DialTCP("tcp", nil, remote)
 			if reason == nil {
+				reason := client.SetKeepAlive(true)
+				if reason != nil {
+					return nil, reason
+				}
+				reason = client.SetKeepAlivePeriod(time.Second)
+				if reason != nil {
+					return nil, reason
+				}
 				outbound[index] = client
 				break
 			}
