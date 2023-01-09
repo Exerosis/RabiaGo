@@ -51,6 +51,14 @@ func run() error {
 }
 
 func main() {
+	var test = make([]int, 10)
+	for i := range test {
+		test[i] = i
+	}
+	var slice = test[4:]
+	for i := range slice {
+		println(slice[i])
+	}
 	var reason = run()
 	if reason != nil {
 		fmt.Println("failed: ", reason)
