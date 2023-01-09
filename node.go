@@ -63,7 +63,7 @@ func Node(
 					amount = atomic.LoadUint32(&count)
 				}
 				if amount >= AVERAGE {
-					percent, reason := cpu.Percent(0, false)
+					percent, reason := cpu.Percent(0, true)
 					if reason != nil {
 						return reason
 					}
