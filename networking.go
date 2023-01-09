@@ -23,11 +23,13 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
 	var reasons []error
+	var cloned = make([]byte, len(buffer))
+	copy(cloned, buffer)
 	group.Add(len(tcp.outbound) - 1)
 	for _, connection := range tcp.outbound {
 		go func(connection net.Conn) {
 			defer group.Done()
-			_, reason := connection.Write(buffer)
+			_, reason := connection.Write(cloned)
 			fmt.Println("Wrote for ", connection.RemoteAddr().String())
 			if reason != nil {
 				lock.Lock()
