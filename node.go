@@ -74,7 +74,7 @@ func Node(
 				}
 				i++
 				if i == len(instance)-1 {
-					panic("Done!")
+					return errors.New("Done!")
 				}
 				current += uint32(len(pipes))
 				return nil
