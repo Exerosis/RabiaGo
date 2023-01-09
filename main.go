@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const COUNT = 5_000_000
+const COUNT = 10_000_000
 const AVERAGE = 10_000
 const INFO = false
 
