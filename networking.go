@@ -37,7 +37,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 					//fmt.Println("Wrote for ", connection.RemoteAddr().String())
 					break
 				}
-				fmt.Printf("Timed out! %s %s", reason, connection.RemoteAddr().String())
+				fmt.Printf("Timed out! %s %s\n", reason, connection.RemoteAddr().String())
 			}
 
 			//if reason != nil {
