@@ -60,5 +60,6 @@ func Node(
 			}
 		}(index, pipe, instances[index])
 	}
+	println("Node closing!")
 	return nil
 }
