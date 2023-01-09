@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	"time"
 )
 
 type Multicaster interface {
@@ -30,15 +29,9 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	for _, connection := range tcp.outbound {
 		go func(connection net.Conn) {
 			defer group.Done()
-			for {
-				_ = connection.SetDeadline(time.Now().Add(time.Second))
-				_, reason := connection.Write(buffer)
-				if reason == nil {
-					//fmt.Println("Wrote for ", connection.RemoteAddr().String())
-					break
-				}
-				fmt.Printf("Timed out! %s %s\n", reason, connection.RemoteAddr().String())
-			}
+			_, reason := connection.Write(buffer)
+			fmt.Println("Wrote for ", connection.RemoteAddr().String())
+			fmt.Printf("Timed out! %s %s\n", reason, connection.RemoteAddr().String())
 
 			//if reason != nil {
 			//	lock.Lock()
@@ -55,13 +48,12 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 }
 func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
+	fmt.Printf("Read from: %s", connection.LocalAddr().String())
 	_, reason := connection.Read(buffer)
 	if reason != nil {
 		return reason
 	}
-	fmt.Printf("before index: %d\n", tcp.index)
 	tcp.index++
-	fmt.Printf("after index: %d\n", tcp.index)
 	return nil
 }
 func (tcp *TcpMulticaster) close() error {

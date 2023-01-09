@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"runtime"
 	"strings"
 )
 
@@ -55,5 +54,4 @@ func main() {
 	if reason != nil {
 		fmt.Println("failed: ", reason)
 	}
-	runtime.Goexit()
 }

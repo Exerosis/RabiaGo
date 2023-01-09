@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -12,6 +13,7 @@ func Node(
 	addresses []string,
 	pipes ...uint16,
 ) error {
+	var group sync.WaitGroup
 	var log = makeLog(n, uint32((65536/len(pipes))*len(pipes)))
 	var instances = make([][]uint64, len(pipes))
 	//messages map ig?
@@ -23,6 +25,7 @@ func Node(
 	var count = uint32(0)
 	for index, pipe := range pipes {
 		go func(index int, pipe uint16, instance []uint64) {
+			defer group.Done()
 			var info = func(format string, a ...interface{}) {
 				if INFO {
 					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)
@@ -60,6 +63,6 @@ func Node(
 			}
 		}(index, pipe, instances[index])
 	}
-	println("Node closing!")
+	group.Wait()
 	return nil
 }
