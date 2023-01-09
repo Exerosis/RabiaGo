@@ -74,11 +74,12 @@ func Node(
 				}
 				i++
 				if i == len(instance)-1 {
-					return errors.New("Done!")
+					return errors.New("done")
 				}
 				current += uint32(len(pipes))
 				return nil
 			}, info)
+			println("Got error ", reason)
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
