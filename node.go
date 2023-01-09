@@ -68,7 +68,7 @@ func Node(
 						return reason
 					}
 					for _, f := range percent {
-						fmt.Printf("%.2f", f)
+						fmt.Printf("%.2f\n", f)
 					}
 					var duration = time.Since(time.Unix(0, atomic.LoadInt64(&mark)))
 					atomic.StoreInt64(&mark, time.Now().UnixNano())
