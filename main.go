@@ -11,15 +11,16 @@ const COUNT = 10_000_000
 const AVERAGE = 1_000_000
 const INFO = false
 
-// 1 - 5.5
-// 2 - 13
-// 8 - 55
-// 16 - 83
-// 128 -
-// 256 - 140
-// 512 - 140
-// 1024 - 140
-const PIPES = 128
+// 1 - 5.5 (10k)
+// 2 - 13 (10k)
+// 8 - 55 (10k)
+// 16 - 83 (10k)
+// 64 -
+// 128 - 138 (1m)
+// 256 - 140 (10k)
+// 512 - 140 (10k)
+// 1024 - 140 (10k)
+const PIPES = 64
 
 func run() error {
 	interfaces, reason := net.Interfaces()
