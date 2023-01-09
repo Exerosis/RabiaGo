@@ -75,7 +75,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	var control = func(network, address string, conn syscall.RawConn) error {
 		var reason error
 		if reason := conn.Control(func(fd uintptr) {
-			reason = syscall.SetsockoptInt(syscall.Handle(fd), syscall.IPPROTO_TCP, syscall.TCP_NODELAY, 1)
+			reason = syscall.SetsockoptInt(int(fd), syscall.IPPROTO_TCP, syscall.TCP_NODELAY, 1)
 		}); reason != nil {
 			return reason
 		}
