@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go.uber.org/multierr"
 	"net"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -70,13 +72,26 @@ func (tcp *TcpMulticaster) isOpen() bool {
 }
 
 func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, error) {
+	var control = func(network, address string, conn syscall.RawConn) error {
+		var reason error
+		if reason := conn.Control(func(fd uintptr) {
+			reason = syscall.SetsockoptInt(syscall.Handle(fd), syscall.IPPROTO_TCP, syscall.TCP_NODELAY, 1)
+		}); reason != nil {
+			return reason
+		}
+		return reason
+	}
+	var listener = net.ListenConfig{
+		Control: control,
+	}
+	var dialer = &net.Dialer{
+		Control: control,
+	}
+
 	var inbound = make([]net.Conn, len(addresses))
 	var outbound = make([]net.Conn, len(addresses))
-	local, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", address, port))
-	if reason != nil {
-		return nil, fmt.Errorf("resolving server address %s:%d: %w", address, port, reason)
-	}
-	server, reason := net.ListenTCP("tcp", local)
+	var local = fmt.Sprintf("%s:%d", address, port)
+	server, reason := listener.Listen(context.Background(), "tcp", local)
 	if reason != nil {
 		return nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
 	}
@@ -86,17 +101,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	go func() {
 		defer group.Done()
 		for i := 0; i < len(addresses); i++ {
-			client, reason := server.AcceptTCP()
-			if reason != nil {
-				reasons = multierr.Append(reasons, reason)
-				return
-			}
-			reason = client.SetKeepAlive(true)
-			if reason != nil {
-				reasons = multierr.Append(reasons, reason)
-				return
-			}
-			reason = client.SetKeepAlivePeriod(time.Second)
+			client, reason := server.Accept()
 			if reason != nil {
 				reasons = multierr.Append(reasons, reason)
 				return
@@ -105,21 +110,10 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		}
 	}()
 	for index, node := range addresses {
-		remote, reason := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", node, port))
-		if reason != nil {
-			return nil, fmt.Errorf("resolving remote %s:%d: %w", node, port, reason)
-		}
+		var remote = fmt.Sprintf("%s:%d", node, port)
 		for {
-			client, reason := net.DialTCP("tcp", nil, remote)
+			client, reason := dialer.Dial("tcp", remote)
 			if reason == nil {
-				reason := client.SetKeepAlive(true)
-				if reason != nil {
-					return nil, reason
-				}
-				reason = client.SetKeepAlivePeriod(time.Second)
-				if reason != nil {
-					return nil, reason
-				}
 				outbound[index] = client
 				break
 			}
