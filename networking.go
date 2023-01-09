@@ -33,7 +33,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 			for {
 				_ = connection.SetDeadline(time.Now().Add(time.Second))
 				_, reason := connection.Write(buffer)
-				if reason != nil {
+				if reason == nil {
 					//fmt.Println("Wrote for ", connection.RemoteAddr().String())
 					break
 				}
