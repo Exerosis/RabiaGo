@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go.uber.org/multierr"
 	"net"
 	"sync"
 )
@@ -22,7 +23,7 @@ type TcpMulticaster struct {
 func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
-	var reasons []error
+	var reasons error
 	//var cloned = make([]byte, len(buffer))
 	//copy(cloned, buffer)
 	group.Add(len(tcp.outbound))
@@ -34,15 +35,12 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
-				reasons = append(reasons, reason)
+				reasons = multierr.Append(reasons, reason)
 			}
 		}(connection)
 	}
 	group.Wait()
-	if len(reasons) > 0 {
-		return reasons[0]
-	}
-	return nil
+	return reasons
 }
 func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
@@ -73,14 +71,14 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		return nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
 	}
 	var group sync.WaitGroup
-	var reasons []error
+	var reasons error
 	group.Add(1)
 	go func() {
 		defer group.Done()
 		for i := 0; i < len(addresses); i++ {
 			client, reason := server.Accept()
 			if reason != nil {
-				reasons = append(reasons, reason)
+				reasons = multierr.Append(reasons, reason)
 				return
 			}
 			inbound[i] = client
@@ -100,9 +98,8 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		}
 	}
 	group.Wait()
-	if len(reasons) > 0 {
-		//TODO join errors or whatever.
-		return nil, reasons[0]
+	if reasons != nil {
+		return nil, reasons
 	}
 	return &TcpMulticaster{inbound: inbound, outbound: outbound}, nil
 }

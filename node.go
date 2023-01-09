@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -14,6 +15,8 @@ func Node(
 	pipes ...uint16,
 ) error {
 	var group sync.WaitGroup
+	var lock sync.Mutex
+	var reasons error
 	group.Add(len(pipes))
 	var log = makeLog(n, uint32((65536/len(pipes))*len(pipes)))
 	var instances = make([][]uint64, len(pipes))
@@ -60,10 +63,13 @@ func Node(
 				current += uint32(len(pipes))
 			}, info)
 			if reason != nil {
-				info("SMR Crash: %s\n", reason)
+				lock.Lock()
+				defer lock.Unlock()
+				var result = fmt.Errorf("running smr pipe %d: %s", index, reason)
+				reasons = multierr.Append(reasons, result)
 			}
 		}(index, pipe, instances[index])
 	}
 	group.Wait()
-	return nil
+	return reasons
 }
