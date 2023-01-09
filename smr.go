@@ -33,7 +33,6 @@ outer:
 		}
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
-		info("sending prop\n")
 		reason = proposes.send(buffer[:10])
 		if reason != nil {
 			return reason
@@ -56,7 +55,6 @@ outer:
 				log.indices[depth]++
 			}
 		}
-		info("Moving to state\n")
 		var proposal = log.proposals[current<<shift]
 		var all = false
 		for i := uint16(1); i < log.majority; i++ {
@@ -83,7 +81,6 @@ outer:
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
-			info("sending state\n")
 			reason := states.send(buffer[:3])
 			info("Sent State: %d(%d) - %d\n", current, phase, state)
 			if reason != nil {
@@ -111,7 +108,6 @@ outer:
 					log.statesZero[depth<<8|round]++
 				}
 			}
-			info("Moving to vote\n")
 			var vote uint8
 			if log.statesOne[height] >= uint8(log.majority) {
 				vote = phase<<2 | 1
@@ -123,7 +119,6 @@ outer:
 			log.statesZero[height] = 0
 			log.statesOne[height] = 0
 			buffer[2] = vote
-			info("sending vote\n")
 			reason = votes.send(buffer[:3])
 			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
@@ -158,12 +153,6 @@ outer:
 			log.votesZero[height] = 0
 			log.votesOne[height] = 0
 			log.votesLost[height] = 0
-
-			if one != 2 && zero != 0 {
-				panic("bad bad")
-			}
-
-			info("Moving to end\n")
 
 			if one >= uint8(log.f+1) {
 				if all {

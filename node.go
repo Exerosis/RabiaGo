@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"go.uber.org/multierr"
 	"sync"
@@ -48,14 +49,14 @@ func Node(
 			}
 			info("Connected!\n")
 			var test = 0
-			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
+			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				if i >= len(instance) {
-					panic("Done")
+					return 0, 0, errors.New("ran out of entries")
 				}
-				return uint16(current % log.size), instance[i]
-			}, func(slot uint16, message uint64) {
+				return uint16(current % log.size), instance[i], nil
+			}, func(slot uint16, message uint64) error {
 				if instance[test] != message {
-					panic(fmt.Sprintf("%d vs %d", instance[test], message))
+					return errors.New(fmt.Sprintf("%d vs %d", instance[test], message))
 				}
 				test++
 				var amount = atomic.AddUint32(&count, 1)
@@ -69,10 +70,11 @@ func Node(
 					fmt.Printf("%d\n", uint64(throughput))
 				}
 				i++
-				if i == COUNT {
+				if i == len(instance)-1 {
 					panic("Done!")
 				}
 				current += uint32(len(pipes))
+				return nil
 			}, info)
 			if reason != nil {
 				lock.Lock()
