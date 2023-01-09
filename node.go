@@ -54,7 +54,9 @@ func Node(
 					fmt.Printf("%d\n", uint64(throughput))
 				}
 				i++
+				println("before ", log.size, " ", current)
 				current += log.size
+				println("after ", log.size, " ", current)
 			}, info)
 			if reason != nil {
 				info("SMR Crash: %s\n", reason)
