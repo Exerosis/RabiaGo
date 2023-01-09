@@ -79,7 +79,6 @@ func Node(
 				current += uint32(len(pipes))
 				return nil
 			}, info)
-			fmt.Printf("Got error %s", reason)
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
