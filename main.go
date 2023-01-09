@@ -10,7 +10,12 @@ import (
 const COUNT = 10_000_000
 const AVERAGE = 10_000
 const INFO = false
-const PIPES = 8
+
+// 1 - 5.5
+// 2 - 13
+// 8 - 55
+
+const PIPES = 16
 
 func run() error {
 	interfaces, reason := net.Interfaces()
