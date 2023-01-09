@@ -26,12 +26,13 @@ func Node(
 	for i := 0; i < COUNT; i++ {
 		instances[i%len(pipes)] = append(instances[i%len(pipes)], uint64(i))
 	}
+	fmt.Println("Instance Length: ", len(instances[0]))
+
 	var mark = time.Now().UnixNano()
 	var count = uint32(0)
 	for index, pipe := range pipes {
 		go func(index int, pipe uint16, instance []uint64) {
 			defer group.Done()
-			fmt.Println("Instance Length: ", len(instance))
 			var info = func(format string, a ...interface{}) {
 				if INFO {
 					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)

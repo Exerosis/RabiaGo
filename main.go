@@ -20,9 +20,9 @@ const INFO = false
 // 64 - 127 (1m)
 // 128 - 138 (1m)
 // 256 - 139 (1m)
-// 512 - 140 (10k)
+// 512 - 138 (1m)
 // 1024 - 140 (10k)
-const PIPES = 512
+const PIPES = 1024
 
 func run() error {
 	interfaces, reason := net.Interfaces()
