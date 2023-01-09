@@ -33,6 +33,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 			defer group.Done()
 			for {
 				_ = connection.SetDeadline(time.Now().Add(time.Second))
+				fmt.Printf("Buffer Size: %d", len(buffer))
 				_, reason := connection.Write(buffer)
 				if reason == nil {
 					fmt.Println("Wrote for ", connection.RemoteAddr().String())
