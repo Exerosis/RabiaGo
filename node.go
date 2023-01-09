@@ -56,7 +56,7 @@ func Node(
 				current++
 			}, info)
 			if reason != nil {
-				info("SMR death: ", reason)
+				info("SMR Crash: %s\n", reason)
 			}
 		}(int(pipe), instances[index])
 	}
