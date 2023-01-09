@@ -23,7 +23,7 @@ type TcpMulticaster struct {
 
 func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var group sync.WaitGroup
-	//var lock sync.Mutex
+	var lock sync.Mutex
 	var reasons error
 	//var cloned = make([]byte, len(buffer))
 	//copy(cloned, buffer)
@@ -31,27 +31,18 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	for _, connection := range tcp.outbound {
 		go func(connection net.Conn) {
 			defer group.Done()
-			for {
-				_ = connection.SetDeadline(time.Now().Add(time.Second))
-				justinCase := len(buffer)
-				//fmt.Printf("Buffer Size: %d\n", justinCase)
-				if justinCase != 10 && justinCase != 3 {
-					panic("Wrong sizes")
-				}
-				_, reason := connection.Write(buffer)
-				if reason == nil {
-					//fmt.Println("Wrote for ", connection.RemoteAddr().String())
-					break
-				} else {
-					fmt.Printf("Timed out %s\n", connection.RemoteAddr().String())
-				}
+			reason := connection.SetDeadline(time.Now().Add(time.Second))
+			if reason != nil {
+				lock.Lock()
+				defer lock.Unlock()
+				reasons = multierr.Append(reasons, reason)
 			}
-
-			//if reason != nil {
-			//	lock.Lock()
-			//	defer lock.Unlock()
-			//	reasons = multierr.Append(reasons, reason)
-			//}
+			_, reason = connection.Write(buffer)
+			if reason != nil {
+				lock.Lock()
+				defer lock.Unlock()
+				reasons = multierr.Append(reasons, reason)
+			}
 		}(connection)
 	}
 	group.Wait()
