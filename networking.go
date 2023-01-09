@@ -23,7 +23,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
 	var reasons []error
-	group.Add(len(tcp.outbound))
+	group.Add(len(tcp.outbound) - 1)
 	for _, connection := range tcp.outbound {
 		go func(connection net.Conn) {
 			defer group.Done()
