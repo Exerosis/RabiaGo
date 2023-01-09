@@ -10,6 +10,7 @@ import (
 const COUNT = 10_000_000
 const AVERAGE = 10_000
 const INFO = true
+const PIPES = 5
 
 func run() error {
 	interfaces, reason := net.Interfaces()
@@ -42,7 +43,7 @@ func run() error {
 		"192.168.1.2",
 		"192.168.1.3",
 	}
-	var pipes = make([]uint16, 2)
+	var pipes = make([]uint16, PIPES)
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
