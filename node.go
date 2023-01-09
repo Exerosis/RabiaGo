@@ -40,6 +40,7 @@ func Node(
 			}
 			info("Connected!\n")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64) {
+				fmt.Printf("[Pipe-%d] %d - %d", index, uint16(current%log.size), instance[i])
 				return uint16(current % log.size), instance[i]
 			}, func(slot uint16, message uint64) {
 				var amount = atomic.AddUint32(&count, 1)
