@@ -59,7 +59,9 @@ func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	if reason != nil {
 		return reason
 	}
+	println("before index: ", tcp.index)
 	tcp.index++
+	println("after index: ", tcp.index)
 	return nil
 }
 func (tcp *TcpMulticaster) close() error {
