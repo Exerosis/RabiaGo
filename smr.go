@@ -64,7 +64,7 @@ outer:
 		}
 		if !all {
 			for i := uint16(0); i < log.majority; i++ {
-				info("proposals[%d] = %d", i, log.proposals[current<<shift|i])
+				info("proposals[%d] = %d\n", i, log.proposals[current<<shift|i])
 			}
 			return errors.New("very strange")
 		}
