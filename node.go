@@ -65,6 +65,9 @@ func Node(
 					fmt.Printf("%d\n", uint64(throughput))
 				}
 				i++
+				if i == COUNT {
+					panic("Done!")
+				}
 				current += uint32(len(pipes))
 			}, info)
 			if reason != nil {

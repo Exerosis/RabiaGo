@@ -17,6 +17,7 @@ const INFO = false
 // 16 - 83
 
 // 512 - 140
+// 1024 - 140
 const PIPES = 1024
 
 func run() error {
