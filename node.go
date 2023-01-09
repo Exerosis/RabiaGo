@@ -51,7 +51,7 @@ func Node(
 				return uint16(current % log.size), instance[i]
 			}, func(slot uint16, message uint64) {
 				if instance[test] != message {
-					panic("Death")
+					panic(fmt.Sprintf("%d vs %d", instance[test], message))
 				}
 				test++
 				var amount = atomic.AddUint32(&count, 1)
