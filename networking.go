@@ -28,7 +28,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 		go func(connection net.Conn) {
 			defer group.Done()
 			_, reason := connection.Write(buffer)
-			fmt.Println("Wrote for ", connection.RemoteAddr().String())
+			//fmt.Println("Wrote for ", connection.RemoteAddr().String())
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
