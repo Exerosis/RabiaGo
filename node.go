@@ -51,7 +51,7 @@ func Node(
 					var throughput = float64(amount) / duration.Seconds()
 					fmt.Printf("%d\n", uint64(throughput))
 				}
-				current++
+				current += log.size
 			}, info)
 			if reason != nil {
 				info("SMR Crash: %s\n", reason)
