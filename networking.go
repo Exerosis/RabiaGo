@@ -40,9 +40,9 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 				defer lock.Unlock()
 				reasons = multierr.Append(reasons, reason)
 			}
-			var required = len(buffer)
+			var required = len(buffer) //20
 			for required > 0 {
-				amount, reason := connection.Write(buffer)
+				amount, reason := connection.Write(buffer[(len(buffer)-required)+1:])
 				if reason != nil {
 					lock.Lock()
 					defer lock.Unlock()
@@ -62,7 +62,7 @@ func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	var required = len(buffer)
 	var times = 0
 	for required > 0 {
-		amount, reason := connection.Read(buffer)
+		amount, reason := connection.Read(buffer[(len(buffer)-required)+1:])
 		if reason != nil {
 			return reason
 		}
