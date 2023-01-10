@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const COUNT = 1_000_000
+const COUNT = 10_000
 const AVERAGE = 10_000
 const INFO = false
 
@@ -24,7 +24,7 @@ const INFO = false
 // 256 - 139 (1m)
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
-const Pipes = 1024
+const Pipes = 512
 
 const Multiplier = 2000
 const SizeBuffer = 10 * Multiplier
