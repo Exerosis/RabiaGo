@@ -24,7 +24,13 @@ const INFO = false
 // 256 - 139 (1m)
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
-const PIPES = 256
+const Pipes = 512
+
+const Multiplier = 1000
+const SizeBuffer = 10 * Multiplier
+const SizeProvider = 10 * Multiplier
+const SizeVote = 3 * Multiplier
+const SizeState = 3 * Multiplier
 
 func run() error {
 	interfaces, reason := net.Interfaces()
@@ -57,7 +63,7 @@ func run() error {
 		"192.168.1.2",
 		"192.168.1.3",
 	}
-	var pipes = make([]uint16, PIPES)
+	var pipes = make([]uint16, Pipes)
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
