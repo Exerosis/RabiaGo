@@ -54,7 +54,8 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
 	//fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
-	_, reason := connection.Read(buffer)
+	amount, reason := connection.Read(buffer)
+	fmt.Printf("Amount: %d\n", amount)
 	if reason != nil {
 		return reason
 	}
