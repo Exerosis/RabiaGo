@@ -90,5 +90,6 @@ func Node(
 		}(index, pipe, instances[index])
 	}
 	group.Wait()
+	fmt.Println("Exiting finally!")
 	return reasons
 }
