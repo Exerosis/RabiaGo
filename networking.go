@@ -40,11 +40,16 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 				defer lock.Unlock()
 				reasons = multierr.Append(reasons, reason)
 			}
-			_, reason = connection.Write(buffer)
-			if reason != nil {
-				lock.Lock()
-				defer lock.Unlock()
-				reasons = multierr.Append(reasons, reason)
+			var required = len(buffer)
+			for required > 0 {
+				amount, reason := connection.Write(buffer)
+				if reason != nil {
+					lock.Lock()
+					defer lock.Unlock()
+					reasons = multierr.Append(reasons, reason)
+					return
+				}
+				required -= amount
 			}
 		}(connection)
 	}
@@ -54,13 +59,18 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
 	//fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
-	var total = len(buffer)
-	amount, reason := connection.Read(buffer)
-	if total != amount {
-		fmt.Printf("Amount: %d\n", amount)
+	var required = len(buffer)
+	var times = 0
+	for required > 0 {
+		amount, reason := connection.Read(buffer)
+		if reason != nil {
+			return reason
+		}
+		required -= amount
+		times++
 	}
-	if reason != nil {
-		return reason
+	if times > 1 {
+		fmt.Println("Times: ", times)
 	}
 	tcp.index++
 	return nil
