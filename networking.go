@@ -60,16 +60,13 @@ func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
 	//fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
 	var start = 0
-	var times = 0
 	for start != len(buffer) {
 		amount, reason := connection.Read(buffer[start:])
 		if reason != nil {
 			return reason
 		}
 		start += amount
-		times++
 	}
-	fmt.Println("Times: ", times)
 	tcp.index++
 	return nil
 }
