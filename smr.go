@@ -14,7 +14,7 @@ func isOld(a uint16, b uint16, half uint16) bool {
 	return a < b && (b-a) < half || a > b && (a-b) > half
 }
 
-const Multiplier = 50
+const Multiplier = 500
 const SizeBuffer = 10 * Multiplier
 const SizeProvider = 10 * Multiplier
 const SizeVote = 3 * Multiplier
