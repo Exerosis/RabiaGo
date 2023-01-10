@@ -3,6 +3,7 @@ package main
 import (
 	. "encoding/binary"
 	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 )
@@ -148,6 +149,7 @@ outer:
 					log.votesLost[depth<<8|round]++
 				}
 			}
+			fmt.Println("Got here")
 			var zero = log.votesZero[height]
 			var one = log.votesOne[height]
 			log.votesZero[height] = 0
