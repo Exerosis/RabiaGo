@@ -69,9 +69,9 @@ func (tcp *TcpMulticaster) receive(buffer []byte) error {
 		required -= amount
 		times++
 	}
-	if times > 1 {
-		fmt.Println("Times: ", times)
-	}
+	//if times > 1 {
+	//	fmt.Println("Times: ", times)
+	//}
 	tcp.index++
 	return nil
 }
