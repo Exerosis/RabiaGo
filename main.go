@@ -26,7 +26,7 @@ const INFO = false
 // 1024 - 138 (1m)
 const Pipes = 256
 
-const Multiplier = 500
+const Multiplier = 1000
 const SizeBuffer = 10 * Multiplier
 const SizeProvider = 10 * Multiplier
 const SizeVote = 3 * Multiplier
