@@ -24,7 +24,7 @@ const INFO = false
 // 256 - 139 (1m)
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
-const Pipes = 256
+const Pipes = 512
 
 const Multiplier = 400
 const SizeBuffer = 10 * Multiplier
