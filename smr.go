@@ -14,6 +14,10 @@ func isOld(a uint16, b uint16, half uint16) bool {
 	return a < b && (b-a) < half || a > b && (a-b) > half
 }
 
+const SizeProvider = 10
+const SizeVote = 3
+const SizeState = 3
+
 func (log Log) SMR(
 	proposes Multicaster,
 	states Multicaster,
@@ -33,13 +37,13 @@ outer:
 		}
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
-		reason = proposes.send(buffer[:10])
+		reason = proposes.send(buffer[:SizeProvider])
 		if reason != nil {
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", current, proposed)
 		for log.indices[current] < log.majority {
-			reason := proposes.receive(buffer[:10])
+			reason := proposes.receive(buffer[:SizeProvider])
 			if reason != nil {
 				return reason
 			}
@@ -81,13 +85,13 @@ outer:
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
-			reason := states.send(buffer[:3])
+			reason := states.send(buffer[:SizeState])
 			info("Sent State: %d(%d) - %d\n", current, phase, state)
 			if reason != nil {
 				return reason
 			}
 			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
-				reason := states.receive(buffer[:3])
+				reason := states.receive(buffer[:SizeState])
 				if reason != nil {
 					return reason
 				}
@@ -119,13 +123,13 @@ outer:
 			log.statesZero[height] = 0
 			log.statesOne[height] = 0
 			buffer[2] = vote
-			reason = votes.send(buffer[:3])
+			reason = votes.send(buffer[:SizeVote])
 			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
 				return reason
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
-				reason := votes.receive(buffer[:3])
+				reason := votes.receive(buffer[:SizeVote])
 				if reason != nil {
 					return reason
 				}
