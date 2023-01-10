@@ -41,7 +41,6 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 				reasons = multierr.Append(reasons, reason)
 			}
 			var start = 0
-			var times = 0
 			for start != len(buffer) {
 				amount, reason := connection.Write(buffer[start:])
 				if reason != nil {
@@ -51,8 +50,6 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 					return
 				}
 				start += amount
-				times++
-				fmt.Println("Times: ", times)
 			}
 		}(connection)
 	}
