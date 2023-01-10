@@ -24,9 +24,6 @@ func Node(
 	for i := 0; i < COUNT; i++ {
 		instances[i%len(pipes)] = append(instances[i%len(pipes)], uint64(i))
 	}
-	for _, instance := range instances {
-		fmt.Println("Length: ", len(instance))
-	}
 	fmt.Println("Instance Length: ", len(instances[0]))
 
 	//var mark = time.Now().UnixNano()
@@ -55,6 +52,7 @@ func Node(
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				return uint16(current % log.size), instance[i], nil
 			}, func(slot uint16, message uint64) error {
+				fmt.Println("Working?")
 				var amount = atomic.AddUint32(&count, 1)
 				//for amount >= AVERAGE && !atomic.CompareAndSwapUint32(&count, amount, 0) {
 				//	amount = atomic.LoadUint32(&count)
