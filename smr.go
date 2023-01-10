@@ -14,9 +14,11 @@ func isOld(a uint16, b uint16, half uint16) bool {
 	return a < b && (b-a) < half || a > b && (a-b) > half
 }
 
-const SizeProvider = 10
-const SizeVote = 3
-const SizeState = 3
+const Multiplier = 50
+const SizeBuffer = 10 * Multiplier
+const SizeProvider = 10 * Multiplier
+const SizeVote = 3 * Multiplier
+const SizeState = 3 * Multiplier
 
 func (log Log) SMR(
 	proposes Multicaster,
@@ -26,7 +28,7 @@ func (log Log) SMR(
 	commit func(uint16, uint64) error,
 	info func(string, ...interface{}),
 ) error {
-	var buffer = make([]byte, 10)
+	var buffer = make([]byte, SizeBuffer)
 	var half = uint16(len(log.logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.majority)))) + 1
 outer:
