@@ -73,7 +73,9 @@ func Node(
 					fmt.Printf("%d - %.2f\n", uint32(throughput), percent[0])
 				}
 				i++
+				fmt.Println("here")
 				if i == len(instance)-1 {
+					fmt.Println("Done!")
 					return errors.New("done")
 				}
 				current += uint32(len(pipes))
