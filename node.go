@@ -25,7 +25,7 @@ func Node(
 		instances[i%len(pipes)] = append(instances[i%len(pipes)], uint64(i))
 	}
 	for _, instance := range instances {
-		fmt.Println("Length: %d", len(instance))
+		fmt.Println("Length: ", len(instance))
 	}
 	fmt.Println("Instance Length: ", len(instances[0]))
 
