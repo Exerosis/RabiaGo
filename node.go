@@ -83,7 +83,7 @@ func Node(
 				lock.Lock()
 				defer lock.Unlock()
 				var result = fmt.Errorf("running smr pipe %d: %s", index, reason)
-				reasons = multierr.Append(reasons, result)
+				reasons = result
 			}
 			return
 		}(index, pipe, instances[index])
