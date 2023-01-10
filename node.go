@@ -68,13 +68,13 @@ func Node(
 				//}
 				i++
 				if i == len(instance)-1 {
+					fmt.Println("Done! ", index)
 					return fmt.Errorf("done: %d", amount)
 				}
 				current += uint32(len(pipes))
 				return nil
 			}, info)
 			if reason != nil {
-				fmt.Println("Done!")
 				lock.Lock()
 				defer lock.Unlock()
 				var result = fmt.Errorf("running smr pipe %d: %s", index, reason)
