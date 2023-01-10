@@ -11,7 +11,7 @@ import (
 
 const COUNT = 1_000_000
 const AVERAGE = 10_000
-const INFO = true
+const INFO = false
 
 // 1 - 5.5 (10k)
 // 2 - 13 (10k)
