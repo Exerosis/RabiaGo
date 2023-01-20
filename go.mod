@@ -1,4 +1,4 @@
-module Rabia
+module github.com/exerosis/RabiaGo
 
 go 1.20
 
