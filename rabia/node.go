@@ -21,7 +21,7 @@ func Node(
 	var lock sync.Mutex
 	var reasons error
 	group.Add(len(pipes))
-	var log = makeLog(n, uint32((65536/len(pipes))*len(pipes)))
+	var log = MakeLog(n, uint32((65536/len(pipes))*len(pipes)))
 	var instances = make([][]uint64, len(pipes))
 	//messages map ig?
 
@@ -54,7 +54,7 @@ func Node(
 			}
 			info("Connected!\n")
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
-				return uint16(current % log.size), instance[i], nil
+				return uint16(current % log.Size), instance[i], nil
 			}, func(slot uint16, message uint64) error {
 				fmt.Println("Working?")
 				var amount = atomic.AddUint32(&count, 1)

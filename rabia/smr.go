@@ -29,8 +29,8 @@ func (log Log) SMR(
 	info func(string, ...interface{}),
 ) error {
 	var buffer = make([]byte, SizeBuffer)
-	var half = uint16(len(log.logs) / 2)
-	var shift = uint32(math.Floor(math.Log2(float64(log.majority)))) + 1
+	var half = uint16(len(log.Logs) / 2)
+	var shift = uint32(math.Floor(math.Log2(float64(log.Majority)))) + 1
 outer:
 	for proposes.isOpen() {
 		current, proposed, reason := messages()
@@ -44,7 +44,7 @@ outer:
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", current, proposed)
-		for log.indices[current] < log.majority {
+		for log.indices[current] < log.Majority {
 			reason := proposes.receive(buffer[:SizeProvider])
 			if reason != nil {
 				return reason
@@ -54,23 +54,23 @@ outer:
 				continue
 			}
 			var proposal = LittleEndian.Uint64(buffer[2:])
-			info("Got Proposal (%d/%d): %d - %d\n", log.indices[depth]+1, log.majority, depth, proposal)
+			info("Got Proposal (%d/%d): %d - %d\n", log.indices[depth]+1, log.Majority, depth, proposal)
 			var index = log.indices[depth]
-			if index < log.majority {
+			if index < log.Majority {
 				log.proposals[current<<shift|index] = proposal
 				log.indices[depth]++
 			}
 		}
 		var proposal = log.proposals[current<<shift]
 		var all = false
-		for i := uint16(1); i < log.majority; i++ {
+		for i := uint16(1); i < log.Majority; i++ {
 			all = log.proposals[current<<shift|i] == proposal
 			if !all {
 				break
 			}
 		}
 		if !all {
-			for i := uint16(0); i < log.majority; i++ {
+			for i := uint16(0); i < log.Majority; i++ {
 				info("proposals[%d] = %d\n", i, log.proposals[current<<shift|i])
 			}
 			return errors.New("very strange")
@@ -92,7 +92,7 @@ outer:
 			if reason != nil {
 				return reason
 			}
-			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
+			for log.statesZero[height]+log.statesOne[height] < uint8(log.Majority) {
 				reason := states.receive(buffer[:SizeState])
 				if reason != nil {
 					return reason
@@ -107,7 +107,7 @@ outer:
 				}
 				var op = buffer[2] & 3
 				var total = log.statesZero[depth<<8|round] + log.statesOne[depth<<8|round]
-				info("Got State (%d/%d): %d(%d) - %d\n", total+1, log.majority, depth, round, op)
+				info("Got State (%d/%d): %d(%d) - %d\n", total+1, log.Majority, depth, round, op)
 				if op == 1 {
 					log.statesOne[depth<<8|round]++
 				} else {
@@ -115,9 +115,9 @@ outer:
 				}
 			}
 			var vote uint8
-			if log.statesOne[height] >= uint8(log.majority) {
+			if log.statesOne[height] >= uint8(log.Majority) {
 				vote = phase<<2 | 1
-			} else if log.statesZero[height] >= uint8(log.majority) {
+			} else if log.statesZero[height] >= uint8(log.Majority) {
 				vote = phase<<2 | 0
 			} else {
 				vote = phase<<2 | 2
@@ -130,7 +130,7 @@ outer:
 			if reason != nil {
 				return reason
 			}
-			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
+			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.Majority) {
 				reason := votes.receive(buffer[:SizeVote])
 				if reason != nil {
 					return reason
@@ -145,7 +145,7 @@ outer:
 				}
 				var op = buffer[2] & 3
 				var total = log.votesZero[depth<<8|round] + log.votesOne[depth<<8|round] + log.votesLost[depth<<8|round]
-				info("Got Vote (%d/%d): %d(%d) - %d\n", total+1, log.majority, depth, round, op)
+				info("Got Vote (%d/%d): %d(%d) - %d\n", total+1, log.Majority, depth, round, op)
 				if op == 1 {
 					log.votesOne[depth<<8|round]++
 				} else if op == 0 {
@@ -160,7 +160,7 @@ outer:
 			log.votesOne[height] = 0
 			log.votesLost[height] = 0
 
-			if one >= uint8(log.f+1) {
+			if one >= uint8(log.F+1) {
 				if all {
 					reason = commit(current, proposal)
 					if reason != nil {
@@ -172,7 +172,7 @@ outer:
 						return reason
 					}
 				}
-			} else if zero >= uint8(log.f+1) {
+			} else if zero >= uint8(log.F+1) {
 				reason = commit(current, math.MaxUint64)
 				if reason != nil {
 					return reason

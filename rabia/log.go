@@ -1,25 +1,25 @@
 package rabia
 
 type Log struct {
-	size     uint32
-	n        uint16
-	f        uint16
-	majority uint16
+	Size     uint32
+	N        uint16
+	F        uint16
+	Majority uint16
 
-	logs []uint64
+	Logs []uint64
 
-	indices   []uint16
-	proposals []uint64
+	Indices   []uint16
+	Proposals []uint64
 
-	statesZero []uint8
-	statesOne  []uint8
+	StatesZero []uint8
+	StatesOne  []uint8
 
-	votesZero []uint8
-	votesOne  []uint8
-	votesLost []uint8
+	VotesZero []uint8
+	VotesOne  []uint8
+	VotesLost []uint8
 }
 
-func makeLog(n uint16, size uint32) *Log {
+func MakeLog(n uint16, size uint32) *Log {
 	var majority = (n / 2) + 1
 	return &Log{
 		size, n, n / 2, majority,
