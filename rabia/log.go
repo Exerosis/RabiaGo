@@ -1,4 +1,4 @@
-package main
+package rabia
 
 type Log struct {
 	size     uint32

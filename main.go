@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/exerosis/RabiaGo/rabia"
 	"net"
 	"os"
 	"runtime/pprof"
@@ -67,7 +68,7 @@ func run() error {
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
-	return Node(3, strings.Split(address.String(), "/")[0], nodes, pipes...)
+	return rabia.Node(3, strings.Split(address.String(), "/")[0], nodes, pipes...)
 }
 
 func main() {

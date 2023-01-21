@@ -1,8 +1,9 @@
-package main
+package rabia
 
 import (
 	. "encoding/binary"
 	"errors"
+	"github.com/exerosis/RabiaGo"
 	"math"
 	"math/rand"
 )
@@ -22,7 +23,7 @@ func (log Log) SMR(
 	commit func(uint16, uint64) error,
 	info func(string, ...interface{}),
 ) error {
-	var buffer = make([]byte, SizeBuffer)
+	var buffer = make([]byte, main.SizeBuffer)
 	var half = uint16(len(log.logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.majority)))) + 1
 outer:
@@ -33,13 +34,13 @@ outer:
 		}
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
-		reason = proposes.send(buffer[:SizeProvider])
+		reason = proposes.send(buffer[:main.SizeProvider])
 		if reason != nil {
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", current, proposed)
 		for log.indices[current] < log.majority {
-			reason := proposes.receive(buffer[:SizeProvider])
+			reason := proposes.receive(buffer[:main.SizeProvider])
 			if reason != nil {
 				return reason
 			}
@@ -81,13 +82,13 @@ outer:
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
-			reason := states.send(buffer[:SizeState])
+			reason := states.send(buffer[:main.SizeState])
 			info("Sent State: %d(%d) - %d\n", current, phase, state)
 			if reason != nil {
 				return reason
 			}
 			for log.statesZero[height]+log.statesOne[height] < uint8(log.majority) {
-				reason := states.receive(buffer[:SizeState])
+				reason := states.receive(buffer[:main.SizeState])
 				if reason != nil {
 					return reason
 				}
@@ -119,13 +120,13 @@ outer:
 			log.statesZero[height] = 0
 			log.statesOne[height] = 0
 			buffer[2] = vote
-			reason = votes.send(buffer[:SizeVote])
+			reason = votes.send(buffer[:main.SizeVote])
 			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
 				return reason
 			}
 			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.majority) {
-				reason := votes.receive(buffer[:SizeVote])
+				reason := votes.receive(buffer[:main.SizeVote])
 				if reason != nil {
 					return reason
 				}

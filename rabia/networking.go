@@ -1,4 +1,4 @@
-package main
+package rabia
 
 import (
 	"context"
