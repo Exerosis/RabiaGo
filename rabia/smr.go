@@ -44,7 +44,7 @@ outer:
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", current, proposed)
-		for log.indices[current] < log.Majority {
+		for log.Indices[current] < log.Majority {
 			reason := proposes.receive(buffer[:SizeProvider])
 			if reason != nil {
 				return reason
@@ -54,28 +54,28 @@ outer:
 				continue
 			}
 			var proposal = LittleEndian.Uint64(buffer[2:])
-			info("Got Proposal (%d/%d): %d - %d\n", log.indices[depth]+1, log.Majority, depth, proposal)
-			var index = log.indices[depth]
+			info("Got Proposal (%d/%d): %d - %d\n", log.Indices[depth]+1, log.Majority, depth, proposal)
+			var index = log.Indices[depth]
 			if index < log.Majority {
-				log.proposals[current<<shift|index] = proposal
-				log.indices[depth]++
+				log.Proposals[current<<shift|index] = proposal
+				log.Indices[depth]++
 			}
 		}
-		var proposal = log.proposals[current<<shift]
+		var proposal = log.Proposals[current<<shift]
 		var all = false
 		for i := uint16(1); i < log.Majority; i++ {
-			all = log.proposals[current<<shift|i] == proposal
+			all = log.Proposals[current<<shift|i] == proposal
 			if !all {
 				break
 			}
 		}
 		if !all {
 			for i := uint16(0); i < log.Majority; i++ {
-				info("proposals[%d] = %d\n", i, log.proposals[current<<shift|i])
+				info("Proposals[%d] = %d\n", i, log.Proposals[current<<shift|i])
 			}
 			return errors.New("very strange")
 		}
-		log.indices[current] = 0
+		log.Indices[current] = 0
 		var phase = uint8(0)
 		var state uint8
 		if all {
@@ -92,7 +92,7 @@ outer:
 			if reason != nil {
 				return reason
 			}
-			for log.statesZero[height]+log.statesOne[height] < uint8(log.Majority) {
+			for log.StatesZero[height]+log.StatesOne[height] < uint8(log.Majority) {
 				reason := states.receive(buffer[:SizeState])
 				if reason != nil {
 					return reason
@@ -106,31 +106,31 @@ outer:
 					continue
 				}
 				var op = buffer[2] & 3
-				var total = log.statesZero[depth<<8|round] + log.statesOne[depth<<8|round]
+				var total = log.StatesZero[depth<<8|round] + log.StatesOne[depth<<8|round]
 				info("Got State (%d/%d): %d(%d) - %d\n", total+1, log.Majority, depth, round, op)
 				if op == 1 {
-					log.statesOne[depth<<8|round]++
+					log.StatesOne[depth<<8|round]++
 				} else {
-					log.statesZero[depth<<8|round]++
+					log.StatesZero[depth<<8|round]++
 				}
 			}
 			var vote uint8
-			if log.statesOne[height] >= uint8(log.Majority) {
+			if log.StatesOne[height] >= uint8(log.Majority) {
 				vote = phase<<2 | 1
-			} else if log.statesZero[height] >= uint8(log.Majority) {
+			} else if log.StatesZero[height] >= uint8(log.Majority) {
 				vote = phase<<2 | 0
 			} else {
 				vote = phase<<2 | 2
 			}
-			log.statesZero[height] = 0
-			log.statesOne[height] = 0
+			log.StatesZero[height] = 0
+			log.StatesOne[height] = 0
 			buffer[2] = vote
 			reason = votes.send(buffer[:SizeVote])
 			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
 				return reason
 			}
-			for log.votesZero[height]+log.votesOne[height]+log.votesLost[height] < uint8(log.Majority) {
+			for log.VotesZero[height]+log.VotesOne[height]+log.VotesLost[height] < uint8(log.Majority) {
 				reason := votes.receive(buffer[:SizeVote])
 				if reason != nil {
 					return reason
@@ -144,21 +144,21 @@ outer:
 					continue
 				}
 				var op = buffer[2] & 3
-				var total = log.votesZero[depth<<8|round] + log.votesOne[depth<<8|round] + log.votesLost[depth<<8|round]
+				var total = log.VotesZero[depth<<8|round] + log.VotesOne[depth<<8|round] + log.VotesLost[depth<<8|round]
 				info("Got Vote (%d/%d): %d(%d) - %d\n", total+1, log.Majority, depth, round, op)
 				if op == 1 {
-					log.votesOne[depth<<8|round]++
+					log.VotesOne[depth<<8|round]++
 				} else if op == 0 {
-					log.votesZero[depth<<8|round]++
+					log.VotesZero[depth<<8|round]++
 				} else {
-					log.votesLost[depth<<8|round]++
+					log.VotesLost[depth<<8|round]++
 				}
 			}
-			var zero = log.votesZero[height]
-			var one = log.votesOne[height]
-			log.votesZero[height] = 0
-			log.votesOne[height] = 0
-			log.votesLost[height] = 0
+			var zero = log.VotesZero[height]
+			var one = log.VotesOne[height]
+			log.VotesZero[height] = 0
+			log.VotesOne[height] = 0
+			log.VotesLost[height] = 0
 
 			if one >= uint8(log.F+1) {
 				if all {
