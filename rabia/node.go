@@ -2,11 +2,14 @@ package rabia
 
 import (
 	"fmt"
-	"github.com/exerosis/RabiaGo"
 	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
 )
+
+const COUNT = 10_000
+const AVERAGE = 10_000
+const INFO = false
 
 func Node(
 	n uint16,
@@ -22,7 +25,7 @@ func Node(
 	var instances = make([][]uint64, len(pipes))
 	//messages map ig?
 
-	for i := 0; i < main.COUNT; i++ {
+	for i := 0; i < COUNT; i++ {
 		instances[i%len(pipes)] = append(instances[i%len(pipes)], uint64(i))
 	}
 	fmt.Println("Instance Length: ", len(instances[0]))
@@ -33,7 +36,7 @@ func Node(
 		go func(index int, pipe uint16, instance []uint64) {
 			defer group.Done()
 			var info = func(format string, a ...interface{}) {
-				if main.INFO {
+				if INFO {
 					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)
 				}
 			}

@@ -10,10 +10,6 @@ import (
 	"strings"
 )
 
-const COUNT = 10_000
-const AVERAGE = 10_000
-const INFO = false
-
 // 1 - 5.5 (10k)
 // 2 - 13 (10k)
 // 4 - 29 (10k)
@@ -26,12 +22,6 @@ const INFO = false
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
 const Pipes = 512
-
-const Multiplier = 2000
-const SizeBuffer = 10 * Multiplier
-const SizeProvider = 10 * Multiplier
-const SizeVote = 3 * Multiplier
-const SizeState = 3 * Multiplier
 
 func run() error {
 	interfaces, reason := net.Interfaces()
