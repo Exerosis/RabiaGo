@@ -1,6 +1,6 @@
 module github.com/exerosis/RabiaGo
 
-go 1.20
+go 1.19
 
 require (
 	go.uber.org/multierr v1.9.0
