@@ -7,6 +7,4 @@ require (
 	golang.org/x/sys v0.4.0
 )
 
-require (
-	go.uber.org/atomic v1.10.0 // indirect
-)
+require go.uber.org/atomic v1.10.0 // indirect
