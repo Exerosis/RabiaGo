@@ -2,7 +2,6 @@ package rabia
 
 import (
 	. "encoding/binary"
-	"errors"
 	"math"
 	"math/rand"
 )
@@ -69,12 +68,12 @@ outer:
 				break
 			}
 		}
-		if !all {
-			for i := uint16(0); i < log.Majority; i++ {
-				info("Proposals[%d] = %d\n", i, log.Proposals[current<<shift|i])
-			}
-			return errors.New("very strange")
-		}
+		//if !all {
+		//	for i := uint16(0); i < log.Majority; i++ {
+		//		info("Proposals[%d] = %d\n", i, log.Proposals[current<<shift|i])
+		//	}
+		//	return errors.New("very strange")
+		//}
 		log.Indices[current] = 0
 		var phase = uint8(0)
 		var state uint8
@@ -184,8 +183,8 @@ outer:
 				} else if zero > 0 {
 					state = phase<<2 | 0
 				} else {
-					rand.Seed(int64(height))
-					state = phase<<2 | uint8(rand.Intn(2))
+					var random = rand.New(rand.NewSource(int64(height))).Intn(2)
+					state = phase<<2 | uint8(random)
 				}
 				continue
 			}
