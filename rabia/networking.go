@@ -19,9 +19,9 @@ type Multicaster interface {
 }
 
 type TcpMulticaster struct {
-	inbound  []net.Conn
-	outbound []net.Conn
-	index    int
+	Inbound  []net.Conn
+	Outbound []net.Conn
+	Index    int
 }
 
 func (tcp *TcpMulticaster) Send(buffer []byte) error {
@@ -30,8 +30,8 @@ func (tcp *TcpMulticaster) Send(buffer []byte) error {
 	var reasons error
 	//var cloned = make([]byte, len(buffer))
 	//copy(cloned, buffer)
-	group.Add(len(tcp.outbound))
-	for _, connection := range tcp.outbound {
+	group.Add(len(tcp.Outbound))
+	for _, connection := range tcp.Outbound {
 		go func(connection net.Conn) {
 			defer group.Done()
 			reason := connection.SetDeadline(time.Now().Add(time.Second))
@@ -57,7 +57,7 @@ func (tcp *TcpMulticaster) Send(buffer []byte) error {
 	return reasons
 }
 func (tcp *TcpMulticaster) Receive(buffer []byte) error {
-	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
+	connection := tcp.Inbound[tcp.Index%len(tcp.Inbound)]
 	//fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
 	var start = 0
 	for start != len(buffer) {
@@ -67,12 +67,12 @@ func (tcp *TcpMulticaster) Receive(buffer []byte) error {
 		}
 		start += amount
 	}
-	tcp.index++
+	tcp.Index++
 	return nil
 }
 func (tcp *TcpMulticaster) Close() error {
 	var reasons []error
-	for _, connection := range tcp.inbound {
+	for _, connection := range tcp.Inbound {
 		reasons = append(reasons, connection.Close())
 	}
 	return reasons[0]
@@ -135,5 +135,5 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 	if reasons != nil {
 		return nil, reasons
 	}
-	return &TcpMulticaster{inbound: inbound, outbound: outbound}, nil
+	return &TcpMulticaster{Inbound: inbound, Outbound: outbound}, nil
 }
