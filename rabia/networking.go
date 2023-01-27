@@ -15,7 +15,7 @@ type Multicaster interface {
 	Send(buffer []byte) error
 	Receive(buffer []byte) error
 	Close() error
-	isOpen() bool
+	IsOpen() bool
 }
 
 type TcpMulticaster struct {
@@ -77,7 +77,7 @@ func (tcp *TcpMulticaster) Close() error {
 	}
 	return reasons[0]
 }
-func (tcp *TcpMulticaster) isOpen() bool {
+func (tcp *TcpMulticaster) IsOpen() bool {
 	return true
 }
 

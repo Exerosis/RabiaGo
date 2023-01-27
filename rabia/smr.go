@@ -32,7 +32,7 @@ func (log Log) SMR(
 	var half = uint16(len(log.Logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.Majority)))) + 1
 outer:
-	for proposes.isOpen() {
+	for proposes.IsOpen() {
 		current, proposed, reason := messages()
 		if reason != nil {
 			return reason
