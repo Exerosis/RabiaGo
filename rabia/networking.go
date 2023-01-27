@@ -112,6 +112,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		defer group.Done()
 		for i := 0; i < len(addresses); i++ {
 			client, reason := server.Accept()
+			println("Accepted one!")
 			if reason != nil {
 				reasons = multierr.Append(reasons, reason)
 				return
@@ -124,6 +125,7 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		for {
 			client, reason := dialer.Dial("tcp", remote)
 			if reason == nil {
+				println("Connected out to one")
 				outbound[index] = client
 				break
 			}
