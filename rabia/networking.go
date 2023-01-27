@@ -12,9 +12,9 @@ import (
 )
 
 type Multicaster interface {
-	send(buffer []byte) error
-	receive(buffer []byte) error
-	close() error
+	Send(buffer []byte) error
+	Receive(buffer []byte) error
+	Close() error
 	isOpen() bool
 }
 
@@ -24,7 +24,7 @@ type TcpMulticaster struct {
 	index    int
 }
 
-func (tcp *TcpMulticaster) send(buffer []byte) error {
+func (tcp *TcpMulticaster) Send(buffer []byte) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
 	var reasons error
@@ -56,7 +56,7 @@ func (tcp *TcpMulticaster) send(buffer []byte) error {
 	group.Wait()
 	return reasons
 }
-func (tcp *TcpMulticaster) receive(buffer []byte) error {
+func (tcp *TcpMulticaster) Receive(buffer []byte) error {
 	connection := tcp.inbound[tcp.index%len(tcp.inbound)]
 	//fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
 	var start = 0
@@ -70,7 +70,7 @@ func (tcp *TcpMulticaster) receive(buffer []byte) error {
 	tcp.index++
 	return nil
 }
-func (tcp *TcpMulticaster) close() error {
+func (tcp *TcpMulticaster) Close() error {
 	var reasons []error
 	for _, connection := range tcp.inbound {
 		reasons = append(reasons, connection.Close())
