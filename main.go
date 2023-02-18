@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -62,6 +63,8 @@ func run() error {
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
+	var complete sync.WaitGroup
+	complete.Add(1)
 	var node = rabia.MakeRabiaNode(addresses, pipes...)
 	go func() {
 		reason := node.Run(strings.Split(address.String(), "/")[0])
@@ -92,6 +95,9 @@ func run() error {
 					if uint64(test) != proposal {
 						panic("Out of Order")
 					}
+					if test == Count-1 {
+						complete.Done()
+					}
 				}
 			}
 		}
@@ -103,6 +109,7 @@ func run() error {
 		binary.LittleEndian.PutUint32(data, i)
 		propose(node, data)
 	}
+	complete.Wait()
 	return nil
 }
 
