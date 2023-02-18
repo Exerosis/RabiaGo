@@ -87,11 +87,12 @@ func run() error {
 				data, present := node.Messages[proposal]
 				node.ProposeMutex.RUnlock()
 				if present {
-					//println("handling: ", string(data.Data))
+					var test = binary.LittleEndian.Uint32(data)
+					println("handling: ", test)
 					node.ProposeMutex.Lock()
 					delete(node.Messages, proposal)
 					node.ProposeMutex.Unlock()
-					var test = binary.LittleEndian.Uint32(data)
+
 					if uint64(test) != proposal {
 						panic("Out of Order")
 					}
