@@ -110,6 +110,7 @@ func run() error {
 		propose(node, data)
 	}
 	complete.Wait()
+	println("Done!")
 	return nil
 }
 
