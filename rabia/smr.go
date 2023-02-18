@@ -166,7 +166,9 @@ outer:
 						return reason
 					}
 				} else {
-					reason = commit(current, 0)
+					//Commit a value that will never appear naturally
+					//this will force a repair on the slot to get the value.
+					reason = commit(current, math.MaxUint64-1)
 					if reason != nil {
 						return reason
 					}
