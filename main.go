@@ -110,7 +110,7 @@ func run() error {
 	for i := uint32(0); i < Count; i++ {
 		var data = make([]byte, 4)
 		binary.LittleEndian.PutUint32(data, i)
-		reason := node.Propose(uint64(i), data)
+		reason := propose(node, data)
 		if reason != nil {
 			return reason
 		}
@@ -121,16 +121,13 @@ func run() error {
 	return nil
 }
 
-func propose(node *rabia.RabiaNode, data []byte) {
+func propose(node *rabia.RabiaNode, data []byte) error {
 	var id uint64
 	for id == 0 || id >= math.MaxUint64-1 {
 		var stamp = uint64(time.Now().UnixMilli())
 		id = uint64(rand.Uint32())<<32 | stamp
 	}
-	reason := node.Propose(id, data)
-	if reason != nil {
-		panic(reason)
-	}
+	return node.Propose(id, data)
 }
 
 func main() {
