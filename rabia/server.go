@@ -25,7 +25,7 @@ type RabiaNode struct {
 	spreadLock   sync.Mutex
 }
 
-const INFO = true
+const INFO = false
 
 func MakeRabiaNode(addresses []string, pipes ...uint16) *RabiaNode {
 	var compare = &comparator{comparingProposals}
