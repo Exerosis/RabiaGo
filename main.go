@@ -73,36 +73,38 @@ func run() error {
 		}
 	}()
 	go func() {
-		var highest = atomic.LoadInt64(&node.Highest)
-		for i := node.Committed; int64(i) <= highest; i++ {
-			var slot = i % uint64(len(node.Log.Logs))
-			var proposal = node.Log.Logs[slot]
-			if proposal == 0 {
-				highest = int64(i)
-				//if we hit the first unfilled slot stop
-				break
-			}
-			if proposal != math.MaxUint64 {
-				node.ProposeMutex.RLock()
-				data, present := node.Messages[proposal]
-				node.ProposeMutex.RUnlock()
-				if present {
-					var test = binary.LittleEndian.Uint32(data)
-					println("handling: ", test)
-					node.ProposeMutex.Lock()
-					delete(node.Messages, proposal)
-					node.ProposeMutex.Unlock()
+		for {
+			var highest = atomic.LoadInt64(&node.Highest)
+			for i := node.Committed; int64(i) <= highest; i++ {
+				var slot = i % uint64(len(node.Log.Logs))
+				var proposal = node.Log.Logs[slot]
+				if proposal == 0 {
+					highest = int64(i)
+					//if we hit the first unfilled slot stop
+					break
+				}
+				if proposal != math.MaxUint64 {
+					node.ProposeMutex.RLock()
+					data, present := node.Messages[proposal]
+					node.ProposeMutex.RUnlock()
+					if present {
+						var test = binary.LittleEndian.Uint32(data)
+						println("handling: ", test)
+						node.ProposeMutex.Lock()
+						delete(node.Messages, proposal)
+						node.ProposeMutex.Unlock()
 
-					if uint64(test) != proposal {
-						panic("Out of Order")
-					}
-					if test == Count-1 {
-						complete.Done()
+						if uint64(test) != proposal {
+							panic("Out of Order")
+						}
+						if test == Count-1 {
+							complete.Done()
+						}
 					}
 				}
 			}
+			atomic.StoreUint64(&node.Committed, uint64(highest+1))
 		}
-		atomic.StoreUint64(&node.Committed, uint64(highest+1))
 	}()
 
 	for i := uint32(0); i < Count; i++ {
