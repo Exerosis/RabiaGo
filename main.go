@@ -1,13 +1,16 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/exerosis/RabiaGo/rabia"
+	"math"
+	"math/rand"
 	"net"
-	"os"
-	"runtime/pprof"
 	"strings"
+	"sync/atomic"
+	"time"
 )
 
 // 1 - 5.5 (10k)
@@ -21,7 +24,8 @@ import (
 // 256 - 139 (1m)
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
-const Pipes = 512
+const Pipes = 1
+const Count = uint32(100)
 
 func run() error {
 	interfaces, reason := net.Interfaces()
@@ -49,7 +53,7 @@ func run() error {
 	fmt.Printf("Interface: %s\n", network.Name)
 	fmt.Printf("Address: %s\n", address)
 
-	var nodes = []string{
+	var addresses = []string{
 		"192.168.1.1",
 		"192.168.1.2",
 		"192.168.1.3",
@@ -58,20 +62,73 @@ func run() error {
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
-	return rabia.Node(3, strings.Split(address.String(), "/")[0], nodes, pipes...)
+	var node = rabia.MakeRabiaNode(addresses, pipes...)
+	go func() {
+		reason := node.Run(strings.Split(address.String(), "/")[0])
+		if reason != nil {
+			panic(reason)
+		}
+	}()
+	go func() {
+		var highest = atomic.LoadInt64(&node.Highest)
+		for i := node.Committed; int64(i) <= highest; i++ {
+			var slot = i % uint64(len(node.Log.Logs))
+			var proposal = node.Log.Logs[slot]
+			if proposal == 0 {
+				highest = int64(i)
+				//if we hit the first unfilled slot stop
+				break
+			}
+			if proposal != math.MaxUint64 {
+				node.ProposeMutex.RLock()
+				data, present := node.Messages[proposal]
+				node.ProposeMutex.RUnlock()
+				if present {
+					//println("handling: ", string(data.Data))
+					node.ProposeMutex.Lock()
+					delete(node.Messages, proposal)
+					node.ProposeMutex.Unlock()
+					var test = binary.LittleEndian.Uint32(data)
+					if uint64(test) != proposal {
+						panic("Out of Order")
+					}
+				}
+			}
+		}
+		atomic.StoreUint64(&node.Committed, uint64(highest+1))
+	}()
+
+	for i := uint32(0); i < Count; i++ {
+		var data = make([]byte, 4)
+		binary.LittleEndian.PutUint32(data, i)
+		propose(node, data)
+	}
+	return nil
+}
+
+func propose(node *rabia.RabiaNode, data []byte) {
+	var id uint64
+	for id == 0 || id >= math.MaxUint64-1 {
+		var stamp = uint64(time.Now().UnixMilli())
+		id = uint64(rand.Uint32())<<32 | stamp
+	}
+	reason := node.Propose(id, data)
+	if reason != nil {
+		panic(reason)
+	}
 }
 
 func main() {
-	file, reason := os.Create("cpu.pprof")
-	if reason != nil {
-		fmt.Println("failed: ", reason)
-	}
-	reason = pprof.StartCPUProfile(file)
-	if reason != nil {
-		fmt.Println("failed: ", reason)
-	}
-	defer pprof.StopCPUProfile()
-	reason = run()
+	//file, reason := os.Create("cpu.pprof")
+	//if reason != nil {
+	//	fmt.Println("failed: ", reason)
+	//}
+	//reason = pprof.StartCPUProfile(file)
+	//if reason != nil {
+	//	fmt.Println("failed: ", reason)
+	//}
+	//defer pprof.StopCPUProfile()
+	var reason = run()
 	if reason != nil {
 		fmt.Println("failed: ", reason)
 	}
