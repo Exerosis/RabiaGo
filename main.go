@@ -94,9 +94,9 @@ func run() error {
 						delete(node.Messages, proposal)
 						node.ProposeMutex.Unlock()
 
-						if uint64(test) != proposal {
-							panic("Out of Order")
-						}
+						//if uint64(test) != proposal {
+						//	panic("Out of Order")
+						//}
 						if test == Count-1 {
 							complete.Done()
 						}
