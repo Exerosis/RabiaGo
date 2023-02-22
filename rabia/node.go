@@ -197,8 +197,8 @@ func (node *node) Run(
 				}
 				current += uint64(len(node.pipes))
 				var committed = atomic.LoadUint64(&node.committed)
-				if current-committed >= uint64(log.Size) {
-					panic("WRAPPED TOO HARD!")
+				for current-committed >= uint64(log.Size) {
+					println("please give me some space! turbo wrapping")
 				}
 				log.Logs[current%uint64(log.Size)] = 0
 				return nil
