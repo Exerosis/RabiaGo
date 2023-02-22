@@ -181,7 +181,7 @@ func (node *node) Run(
 				}
 				if message == UNKNOWN {
 					println("We can't recover from this without repair")
-					return nil
+					message = NO_OP
 				}
 				if message != last {
 					if queue.Remove(Identifier{message}) {
