@@ -241,7 +241,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 					return reason
 				}
 			} else {
-				panic("Completely lost this message lol")
+				panic("Message is lost, unrecoverable!")
 			}
 		}
 	}
