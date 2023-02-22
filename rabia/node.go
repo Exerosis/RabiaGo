@@ -175,7 +175,9 @@ func (node *node) Run(
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
 				if message == math.MaxUint64 {
-					queue.Offer(Identifier{last})
+					if last != math.MaxUint64 {
+						queue.Offer(Identifier{last})
+					}
 					return nil
 				}
 				if message == math.MaxUint64-1 {
