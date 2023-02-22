@@ -12,6 +12,10 @@ const SizeProvider = 10 * Multiplier
 const SizeVote = 3 * Multiplier
 const SizeState = 3 * Multiplier
 
+const NO_OP = math.MaxUint64 - 2
+const UNKNOWN = math.MaxUint64 - 1
+const SKIP = math.MaxUint64
+
 // new = a current = b
 // if new is less than current but not by a huge amount then it's old
 // if new is greater than current by a huge amount then it's old
@@ -168,13 +172,13 @@ outer:
 				} else {
 					//Commit a value that will never appear naturally
 					//this will force a repair on the slot to get the value.
-					reason = commit(current, math.MaxUint64-1)
+					reason = commit(current, UNKNOWN)
 					if reason != nil {
 						return reason
 					}
 				}
 			} else if zero >= uint8(log.F+1) {
-				reason = commit(current, math.MaxUint64)
+				reason = commit(current, SKIP)
 				if reason != nil {
 					return reason
 				}

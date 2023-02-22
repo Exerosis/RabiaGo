@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/better-concurrent/guc"
 	"go.uber.org/multierr"
-	"math"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -164,7 +163,7 @@ func (node *node) Run(
 					time.Sleep(50 * time.Nanosecond)
 					next = queue.Poll()
 					if next == nil {
-						next = Identifier{uint64(math.MaxUint64)}
+						next = Identifier{NO_OP}
 					} else {
 						println("Second time avoided noop")
 					}
@@ -174,13 +173,13 @@ func (node *node) Run(
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				if message == math.MaxUint64 {
-					if last != math.MaxUint64 {
+				if message == SKIP {
+					if message != NO_OP {
 						queue.Offer(Identifier{last})
 					}
 					return nil
 				}
-				if message == math.MaxUint64-1 {
+				if message == UNKNOWN {
 					panic("We can't recover from this without repair")
 				}
 				if message != last {
@@ -230,7 +229,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			//if we hit the first unfilled slot stop
 			break
 		}
-		if proposal != math.MaxUint64 {
+		if proposal != NO_OP {
 			node.proposeLock.Lock()
 			data, present := node.messages[proposal]
 			if present {
