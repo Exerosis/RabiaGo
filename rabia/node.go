@@ -160,7 +160,7 @@ func (node *node) Run(
 				var next = queue.Poll()
 				if next == nil {
 					//println("considering noop ", queue.Size())
-					time.Sleep(50 * time.Nanosecond)
+					time.Sleep(1000 * time.Millisecond)
 					next = queue.Poll()
 					if next == nil {
 						next = Identifier{NO_OP}
