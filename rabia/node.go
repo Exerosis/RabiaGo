@@ -179,9 +179,8 @@ func (node *node) Run(
 					return nil
 				}
 				if message != last {
-					panic("Removed one!")
 					if queue.Remove(Identifier{message}) {
-						panic("Removed one!")
+						println("Removed one!")
 					}
 				}
 				//if message != math.MaxUint64 {
