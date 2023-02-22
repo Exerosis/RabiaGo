@@ -180,7 +180,8 @@ func (node *node) Run(
 					return nil
 				}
 				if message == UNKNOWN {
-					panic("We can't recover from this without repair")
+					println("We can't recover from this without repair")
+					return nil
 				}
 				if message != last {
 					if queue.Remove(Identifier{message}) {
