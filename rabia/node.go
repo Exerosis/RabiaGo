@@ -159,7 +159,7 @@ func (node *node) Run(
 				//three++
 				var next = queue.Poll()
 				if next == nil {
-					//println("considering noop ", queue.Size())
+					println("considering noop ", queue.Size())
 					time.Sleep(1000 * time.Millisecond)
 					next = queue.Poll()
 					if next == nil {
