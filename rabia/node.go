@@ -36,7 +36,7 @@ type node struct {
 	spreadLock sync.Mutex
 }
 
-const INFO = false
+const INFO = true
 
 func MakeNode(addresses []string, pipes ...uint16) Node {
 	var compare = &Comparator{ComparingProposals}
