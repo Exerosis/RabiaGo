@@ -237,6 +237,8 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 				if reason != nil {
 					return reason
 				}
+			} else {
+				panic("Completely lost this message lol")
 			}
 		}
 	}
