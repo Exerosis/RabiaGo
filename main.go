@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/exerosis/RabiaGo/rabia"
-	"math"
 	"math/rand"
 	"net"
 	"strings"
@@ -106,7 +105,7 @@ func run() error {
 
 func propose(node rabia.Node, data []byte) {
 	var id uint64
-	for id == 0 || id >= math.MaxUint64-1 {
+	for !rabia.IsValid(id) {
 		var stamp = uint64(time.Now().UnixMilli())
 		id = uint64(rand.Uint32())<<32 | stamp
 	}

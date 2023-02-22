@@ -16,6 +16,10 @@ const NO_OP = math.MaxUint64 - 2
 const UNKNOWN = math.MaxUint64 - 1
 const SKIP = math.MaxUint64
 
+func IsValid(id uint64) bool {
+	return id != 0 && id < NO_OP
+}
+
 // new = a current = b
 // if new is less than current but not by a huge amount then it's old
 // if new is greater than current by a huge amount then it's old
