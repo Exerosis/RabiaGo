@@ -10,7 +10,6 @@ import (
 	"net"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -65,7 +64,7 @@ func run() error {
 	}
 	var complete sync.WaitGroup
 	complete.Add(1)
-	var node = rabia.MakeRabiaNode(addresses, pipes...)
+	var node = rabia.MakeNode(addresses, pipes...)
 	go func() {
 		reason := node.Run(strings.Split(address.String(), "/")[0])
 		if reason != nil {
@@ -74,36 +73,20 @@ func run() error {
 	}()
 	go func() {
 		for {
-			var highest = atomic.LoadInt64(&node.Highest)
-			for i := node.Committed; int64(i) <= highest; i++ {
-				var slot = i % uint64(len(node.Log.Logs))
-				var proposal = node.Log.Logs[slot]
-				if proposal == 0 {
-					highest = int64(i)
-					//if we hit the first unfilled slot stop
-					break
+			reason := node.Consume(func(i uint64, id uint64, data []byte) error {
+				var test = binary.LittleEndian.Uint32(data)
+				println("handling: ", test)
+				if uint64(test) != id {
+					return errors.New("out of Order")
 				}
-				if proposal != math.MaxUint64 {
-					node.ProposeMutex.RLock()
-					data, present := node.Messages[proposal]
-					node.ProposeMutex.RUnlock()
-					if present {
-						var test = binary.LittleEndian.Uint32(data)
-						println("handling: ", test)
-						node.ProposeMutex.Lock()
-						delete(node.Messages, proposal)
-						node.ProposeMutex.Unlock()
-
-						if uint64(test) != proposal {
-							panic("Out of Order")
-						}
-						if test == Count-1 {
-							complete.Done()
-						}
-					}
+				if test == Count-1 {
+					complete.Done()
 				}
+				return nil
+			})
+			if reason != nil {
+				panic(reason)
 			}
-			atomic.StoreUint64(&node.Committed, uint64(highest+1))
 		}
 	}()
 
@@ -121,7 +104,7 @@ func run() error {
 	return nil
 }
 
-func propose(node *rabia.RabiaNode, data []byte) {
+func propose(node rabia.Node, data []byte) {
 	var id uint64
 	for id == 0 || id >= math.MaxUint64-1 {
 		var stamp = uint64(time.Now().UnixMilli())

@@ -1,40 +1,134 @@
 package rabia
 
 import (
+	"encoding/binary"
 	"fmt"
+	"github.com/better-concurrent/guc"
 	"go.uber.org/multierr"
+	"math"
+	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
-const COUNT = 10_000
-const AVERAGE = 10_000
+type Node interface {
+	Size() uint32
+	Propose(id uint64, data []byte) error
+	Run(address string) error
+	Consume(block func(uint64, uint64, []byte) error) error
+}
+type node struct {
+	log *Log
 
-//const INFO = false
+	pipes     []uint16
+	addresses []string
 
-func Node(
-	n uint16,
+	queues      []*guc.PriorityBlockingQueue
+	messages    map[uint64][]byte
+	proposeLock sync.RWMutex
+
+	committed  uint64
+	highest    int64
+	commitLock sync.Mutex
+
+	spreader   *TcpMulticaster
+	spreadLock sync.Mutex
+}
+
+const INFO = false
+
+func MakeNode(addresses []string, pipes ...uint16) Node {
+	var compare = &Comparator{ComparingProposals}
+	var size = uint32((65536 / len(pipes)) * len(pipes))
+	var queues = make([]*guc.PriorityBlockingQueue, len(pipes))
+	for i := range queues {
+		queues[i] = guc.NewPriorityBlockingQueueWithComparator(compare)
+	}
+	return &node{
+		MakeLog(uint16(len(addresses)), size), pipes, addresses,
+		queues, make(map[uint64][]byte), sync.RWMutex{},
+		uint64(0), int64(-1), sync.Mutex{},
+		nil, sync.Mutex{},
+	}
+}
+
+func (node *node) Size() uint32 {
+	return uint32(len(node.log.Logs))
+}
+
+func (node *node) Propose(id uint64, data []byte) error {
+	header := make([]byte, 12)
+	binary.LittleEndian.PutUint64(header[0:], id)
+	binary.LittleEndian.PutUint32(header[8:], uint32(len(data)))
+	var send = append(header, data...)
+	for node.spreader == nil {
+		time.Sleep(time.Millisecond)
+	}
+	go func() {
+		node.spreadLock.Lock()
+		defer node.spreadLock.Unlock()
+		reason := node.spreader.Send(send)
+		if reason != nil {
+			panic(reason)
+		}
+		node.proposeLock.Lock()
+		node.messages[id] = data
+		node.proposeLock.Unlock()
+		node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
+	}()
+	return nil
+}
+
+func (node *node) Run(
 	address string,
-	addresses []string,
-	pipes ...uint16,
 ) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
 	var reasons error
-	group.Add(len(pipes))
-	var log = MakeLog(n, uint32((65536/len(pipes))*len(pipes)))
-	var instances = make([][]uint64, len(pipes))
+	group.Add(len(node.pipes))
+	var log = node.log
 	//messages map ig?
 
-	for i := 0; i < COUNT; i++ {
-		instances[i%len(pipes)] = append(instances[i%len(pipes)], uint64(i))
+	var others []string
+	for _, other := range node.addresses {
+		if other != address {
+			others = append(others, other)
+		}
 	}
-	fmt.Println("Instance Length: ", len(instances[0]))
+	spreader, reason := TCP(address, 2000, others...)
+	if reason != nil {
+		return reason
+	}
+	node.spreader = spreader
+	for _, inbound := range spreader.Inbound {
+		go func(inbound net.Conn) {
+			for {
+				var fill = func(buffer []byte) {
+					for i := 0; i < len(buffer); {
+						amount, reason := inbound.Read(buffer)
+						if reason != nil {
+							panic(reason)
+						}
+						i += amount
+					}
+				}
+				var header = make([]byte, 12)
+				fill(header)
+				var id = binary.LittleEndian.Uint64(header[0:])
+				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
+				fill(data)
+				node.proposeLock.Lock()
+				node.messages[id] = data
+				node.proposeLock.Unlock()
+				node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
+			}
+		}(inbound)
+	}
 
 	//var mark = time.Now().UnixNano()
-	var count = uint32(0)
-	for index, pipe := range pipes {
-		go func(index int, pipe uint16, instance []uint64) {
+	for index, pipe := range node.pipes {
+		go func(index int, pipe uint16, queue *guc.PriorityBlockingQueue) {
 			defer group.Done()
 			var info = func(format string, a ...interface{}) {
 				if INFO {
@@ -42,11 +136,10 @@ func Node(
 				}
 			}
 
-			var current = uint32(index)
-			var i = 0
-			proposals, reason := TCP(address, pipe+1, addresses...)
-			states, reason := TCP(address, pipe+2, addresses...)
-			votes, reason := TCP(address, pipe+3, addresses...)
+			var current = uint64(index)
+			proposals, reason := TCP(address, pipe+1, node.addresses...)
+			states, reason := TCP(address, pipe+2, node.addresses...)
+			votes, reason := TCP(address, pipe+3, node.addresses...)
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
@@ -54,30 +147,57 @@ func Node(
 				reasons = multierr.Append(reasons, result)
 			}
 			info("Connected!\n")
+			//var three = 0
+			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
-				return uint16(current % log.Size), instance[i], nil
-			}, func(slot uint16, message uint64) error {
-				fmt.Println("Working?")
-				var amount = atomic.AddUint32(&count, 1)
-				//for amount >= AVERAGE && !atomic.CompareAndSwapUint32(&count, amount, 0) {
-				//	amount = atomic.LoadUint32(&count)
-				//}
-				//if amount >= AVERAGE {
-				//	percent, reason := cpu.Percent(0, false)
-				//	if reason != nil {
-				//		return reason
+				//if three == 4 {
+				//	time.Sleep(60 * time.Second)
+				//	println("Entries: ")
+				//	for !queue.IsEmpty() {
+				//		println(queue.Poll().(Identifier).value)
 				//	}
-				//	var duration = time.Since(time.Unix(0, atomic.LoadInt64(&mark)))
-				//	atomic.StoreInt64(&mark, time.Now().UnixNano())
-				//	var throughput = float64(amount) / duration.Seconds()
-				//	fmt.Printf("%d - %.2f\n", uint32(throughput), percent[0])
 				//}
-				i++
-				if i == len(instance)-1 {
-					fmt.Println("Done! ", index)
-					return fmt.Errorf("done: %d", amount)
+				//three++
+				var next = queue.Take()
+				//if next == nil {
+				//	//println("considering noop ", queue.Size())
+				//	time.Sleep(50 * time.Nanosecond)
+				//	next = queue.Poll()
+				//	if next == nil {
+				//		next = uint64(math.MaxUint64)
+				//	} else {
+				//		println("Second time avoided noop")
+				//	}
+				//} else {
+				//	//println("didn't noop")
+				//}
+				last = next.(Identifier).Value
+				return uint16(current % uint64(log.Size)), last, nil
+			}, func(slot uint16, message uint64) error {
+				if message == math.MaxUint64 {
+					queue.Offer(Identifier{last})
+					return nil
 				}
-				current += uint32(len(pipes))
+				if message != last {
+					panic("Removed one!")
+					if queue.Remove(Identifier{message}) {
+						panic("Removed one!")
+					}
+				}
+				//if message != math.MaxUint64 {
+				//	fmt.Printf("[Pipe-%d] %d\n", index, message)
+				//}
+				log.Logs[current%uint64(log.Size)] = message
+				var value = atomic.LoadInt64(&node.highest)
+				for value < int64(current) && !atomic.CompareAndSwapInt64(&node.highest, value, int64(current)) {
+					value = atomic.LoadInt64(&node.highest)
+				}
+				current += uint64(len(node.pipes))
+				var committed = atomic.LoadUint64(&node.committed)
+				if current-committed >= uint64(log.Size) {
+					panic("WRAPPED TOO HARD!")
+				}
+				log.Logs[current%uint64(log.Size)] = 0
 				return nil
 			}, info)
 			if reason != nil {
@@ -87,9 +207,40 @@ func Node(
 				reasons = result
 			}
 			return
-		}(index, pipe, instances[index])
+		}(index, pipe, node.queues[index])
 	}
 	group.Wait()
 	fmt.Println("Exiting finally!")
 	return reasons
+}
+
+func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
+	node.commitLock.Lock()
+	defer node.commitLock.Unlock()
+	var highest = atomic.LoadInt64(&node.highest)
+	for i := atomic.LoadUint64(&node.committed); int64(i) <= highest; i++ {
+		var slot = i % uint64(len(node.log.Logs))
+		var proposal = node.log.Logs[slot]
+		if proposal == 0 {
+			highest = int64(i)
+			//if we hit the first unfilled slot stop
+			break
+		}
+		if proposal != math.MaxUint64 {
+			node.proposeLock.Lock()
+			data, present := node.messages[proposal]
+			if present {
+				delete(node.messages, proposal)
+			}
+			node.proposeLock.Unlock()
+			if present {
+				reason := block(i, proposal, data)
+				if reason != nil {
+					return reason
+				}
+			}
+		}
+	}
+	atomic.StoreUint64(&node.committed, uint64(highest+1))
+	return nil
 }
