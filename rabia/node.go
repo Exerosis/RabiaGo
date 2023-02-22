@@ -178,6 +178,9 @@ func (node *node) Run(
 					queue.Offer(Identifier{last})
 					return nil
 				}
+				if message == math.MaxUint64-1 {
+					panic("We can't recover from this without repair")
+				}
 				if message != last {
 					if queue.Remove(Identifier{message}) {
 						println("Removed one!")
