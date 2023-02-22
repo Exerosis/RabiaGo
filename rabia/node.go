@@ -164,7 +164,7 @@ func (node *node) Run(
 					time.Sleep(50 * time.Nanosecond)
 					next = queue.Poll()
 					if next == nil {
-						next = uint64(math.MaxUint64)
+						next = Identifier{uint64(math.MaxUint64)}
 					} else {
 						println("Second time avoided noop")
 					}
