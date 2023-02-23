@@ -157,31 +157,31 @@ func (node *node) Run(
 				//	}
 				//}
 				//three++
-				var next = queue.Poll()
-				if next == nil {
-					println("considering noop ", queue.Size())
-					time.Sleep(1000 * time.Millisecond)
-					next = queue.Poll()
-					if next == nil {
-						next = Identifier{NO_OP}
-					} else {
-						println("Second time avoided noop")
-					}
-				} else {
-					//println("didn't noop")
-				}
+				var next = queue.Take()
+				//if next == nil {
+				//	println("considering noop ", queue.Size())
+				//	time.Sleep(1000 * time.Millisecond)
+				//	next = queue.Poll()
+				//	if next == nil {
+				//		next = Identifier{GIVE_UP}
+				//	} else {
+				//		println("Second time avoided noop")
+				//	}
+				//} else {
+				//	//println("didn't noop")
+				//}
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
 				if message == SKIP {
-					if message != NO_OP {
+					if message != GIVE_UP {
 						queue.Offer(Identifier{last})
 					}
 					return nil
 				}
 				if message == UNKNOWN {
 					println("We can't recover from this without repair")
-					message = NO_OP
+					message = GIVE_UP
 				}
 				if message != last {
 					if queue.Remove(Identifier{message}) {
@@ -232,7 +232,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			//if we hit the first unfilled slot stop
 			break
 		}
-		if proposal != NO_OP {
+		if proposal != GIVE_UP {
 			node.proposeLock.Lock()
 			data, present := node.messages[proposal]
 			if present {
