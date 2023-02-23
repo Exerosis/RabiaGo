@@ -157,19 +157,19 @@ func (node *node) Run(
 				//	}
 				//}
 				//three++
-				var next = queue.Take()
-				//if next == nil {
-				//	println("considering noop ", queue.Size())
-				//	time.Sleep(1000 * time.Millisecond)
-				//	next = queue.Poll()
-				//	if next == nil {
-				//		next = Identifier{GIVE_UP}
-				//	} else {
-				//		println("Second time avoided noop")
-				//	}
-				//} else {
-				//	//println("didn't noop")
-				//}
+				var next = queue.Poll()
+				if next == nil {
+					println("considering noop ", queue.Size())
+					time.Sleep(1000 * time.Millisecond)
+					next = queue.Poll()
+					if next == nil {
+						next = Identifier{GIVE_UP}
+					} else {
+						println("Second time avoided noop")
+					}
+				} else {
+					//println("didn't noop")
+				}
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
