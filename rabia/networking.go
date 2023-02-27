@@ -160,6 +160,9 @@ func Connections(address string, port uint16, addresses ...string) ([]Connection
 		return nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
 	}
 	var connections = make([]Connection, len(addresses))
+	for i, c := range connections {
+		println("Connection: ", i, " - ", c)
+	}
 	for i, other := range addresses {
 		//if we are trying to connect to us make a pipe
 		if other == address {
