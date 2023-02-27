@@ -164,14 +164,12 @@ func Connections(address string, port uint16, addresses ...string) ([]Connection
 		//if we are trying to connect to us make a pipe
 		if other == address {
 			connections[i] = Pipe()
-			println("Made pipe ", i)
 			for range addresses[i+1:] {
 				client, reason := server.Accept()
 				if reason != nil {
 					return nil, reason
 				}
 				i++
-				println("Accepted ", i, " ", client.RemoteAddr().String())
 				connections[i] = connection{client}
 			}
 			break
@@ -180,7 +178,6 @@ func Connections(address string, port uint16, addresses ...string) ([]Connection
 			for {
 				client, reason := dialer.Dial("tcp", remote)
 				if reason == nil {
-					println("Connected to ", i, " ", client.RemoteAddr().String())
 					connections[i] = connection{client}
 					break
 				}

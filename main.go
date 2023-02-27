@@ -57,12 +57,6 @@ func run() error {
 		"192.168.1.2",
 		"192.168.1.3",
 	}
-	println("Starting")
-	_, reason = rabia.Connections(strings.Split(address.String(), "/")[0], 2000, addresses...)
-	if reason != nil {
-		panic(reason)
-	}
-	println("Done!")
 
 	var pipes = make([]uint16, Pipes)
 	for i := range pipes {
