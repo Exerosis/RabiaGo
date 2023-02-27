@@ -83,6 +83,7 @@ func (instance connection) Address() string {
 	return instance.RemoteAddr().String()
 }
 func (instance connection) Read(buffer []byte) error {
+	println("Read tcp")
 	for start := 0; start != len(buffer); {
 		amount, reason := instance.Conn.Read(buffer[start:])
 		if reason != nil {
@@ -109,6 +110,7 @@ type pipe struct {
 }
 
 func (pipe *pipe) Read(buffer []byte) error {
+	println("read pipe")
 	for start := 0; start != len(buffer); {
 		amount, reason := pipe.read.Read(buffer[start:])
 		if reason != nil {
