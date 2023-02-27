@@ -24,7 +24,7 @@ import (
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
 const Pipes = 1
-const Count = uint32(100)
+const Count = uint32(10000)
 
 func run() error {
 	interfaces, reason := net.Interfaces()
@@ -63,9 +63,12 @@ func run() error {
 	}
 	var complete sync.WaitGroup
 	complete.Add(1)
-	var node = rabia.MakeNode(addresses, pipes...)
+	var node, reasons = rabia.MakeNode(strings.Split(address.String(), "/")[0], addresses, pipes...)
+	if reasons != nil {
+		return reasons
+	}
 	go func() {
-		reason := node.Run(strings.Split(address.String(), "/")[0])
+		reason := node.Run()
 		if reason != nil {
 			panic(reason)
 		}

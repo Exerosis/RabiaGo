@@ -28,9 +28,9 @@ func isOld(a uint16, b uint16, half uint16) bool {
 }
 
 func (log Log) SMR(
-	proposes Multicaster,
-	states Multicaster,
-	votes Multicaster,
+	proposes Connection,
+	states Connection,
+	votes Connection,
 	messages func() (uint16, uint64, error),
 	commit func(uint16, uint64) error,
 	info func(string, ...interface{}),
@@ -39,20 +39,20 @@ func (log Log) SMR(
 	var half = uint16(len(log.Logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.Majority)))) + 1
 outer:
-	for proposes.IsOpen() {
+	for {
 		current, proposed, reason := messages()
 		if reason != nil {
 			return reason
 		}
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
-		reason = proposes.Send(buffer[:SizeProvider])
+		reason = proposes.Write(buffer[:SizeProvider])
 		if reason != nil {
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", current, proposed)
 		for log.Indices[current] < log.Majority {
-			reason := proposes.Receive(buffer[:SizeProvider])
+			reason := proposes.Read(buffer[:SizeProvider])
 			if reason != nil {
 				return reason
 			}
@@ -94,13 +94,13 @@ outer:
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
-			reason := states.Send(buffer[:SizeState])
+			reason := states.Write(buffer[:SizeState])
 			info("Sent State: %d(%d) - %d\n", current, phase, state)
 			if reason != nil {
 				return reason
 			}
 			for log.StatesZero[height]+log.StatesOne[height] < uint8(log.Majority) {
-				reason := states.Receive(buffer[:SizeState])
+				reason := states.Read(buffer[:SizeState])
 				if reason != nil {
 					return reason
 				}
@@ -132,13 +132,13 @@ outer:
 			log.StatesZero[height] = 0
 			log.StatesOne[height] = 0
 			buffer[2] = vote
-			reason = votes.Send(buffer[:SizeVote])
+			reason = votes.Write(buffer[:SizeVote])
 			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
 			if reason != nil {
 				return reason
 			}
 			for log.VotesZero[height]+log.VotesOne[height]+log.VotesLost[height] < uint8(log.Majority) {
-				reason := votes.Receive(buffer[:SizeVote])
+				reason := votes.Read(buffer[:SizeVote])
 				if reason != nil {
 					return reason
 				}

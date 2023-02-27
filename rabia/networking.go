@@ -5,83 +5,139 @@ import (
 	"fmt"
 	"go.uber.org/multierr"
 	"golang.org/x/sys/unix"
+	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"syscall"
-	"time"
 )
 
-type Multicaster interface {
-	Send(buffer []byte) error
-	Receive(buffer []byte) error
+type Connection interface {
+	Read(buffer []byte) error
+	Write(buffer []byte) error
 	Close() error
-	IsOpen() bool
 }
 
-type TcpMulticaster struct {
-	Inbound  []net.Conn
-	Outbound []net.Conn
-	Index    int
+type multicaster struct {
+	connections []Connection
+	index       int
+	closed      atomic.Bool
 }
 
-func (tcp *TcpMulticaster) Send(buffer []byte) error {
+func Multicaster(connections []Connection) Connection {
+	return &multicaster{connections: connections}
+}
+
+func (multicaster *multicaster) Write(buffer []byte) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
 	var reasons error
-	//var cloned = make([]byte, len(buffer))
-	//copy(cloned, buffer)
-	group.Add(len(tcp.Outbound))
-	for _, connection := range tcp.Outbound {
-		go func(connection net.Conn) {
+	group.Add(len(multicaster.connections))
+	for _, connection := range multicaster.connections {
+		go func(connection Connection) {
 			defer group.Done()
-			reason := connection.SetDeadline(time.Now().Add(time.Second))
+			//reason := connection.SetDeadline(time.Now().Add(time.Second))
+			//if reason != nil {
+			//	lock.Lock()
+			//	defer lock.Unlock()
+			//	reasons = multierr.Append(reasons, reason)
+			//	return
+			//}
+			reason := connection.Write(buffer)
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
 				reasons = multierr.Append(reasons, reason)
-			}
-			var start = 0
-			for start != len(buffer) {
-				amount, reason := connection.Write(buffer[start:])
-				if reason != nil {
-					lock.Lock()
-					defer lock.Unlock()
-					reasons = multierr.Append(reasons, reason)
-					return
-				}
-				start += amount
+				return
 			}
 		}(connection)
 	}
 	group.Wait()
 	return reasons
 }
-func (tcp *TcpMulticaster) Receive(buffer []byte) error {
-	connection := tcp.Inbound[tcp.Index%len(tcp.Inbound)]
-	//fmt.Printf("Read from: %s\n", connection.RemoteAddr().String())
-	var start = 0
-	for start != len(buffer) {
-		amount, reason := connection.Read(buffer[start:])
+func (multicaster *multicaster) Read(buffer []byte) error {
+	connection := multicaster.connections[multicaster.index%len(multicaster.connections)]
+	multicaster.index++
+	return connection.Read(buffer)
+}
+func (multicaster *multicaster) Close() error {
+	var current = multicaster.closed.Load()
+	for !current && multicaster.closed.CompareAndSwap(current, true) {
+		current = multicaster.closed.Load()
+	}
+	if current {
+		return nil
+	}
+	var reasons error
+	for _, connection := range multicaster.connections {
+		reasons = multierr.Append(reasons, connection.Close())
+	}
+	return reasons
+}
+
+type connection struct {
+	net.Conn
+}
+
+func (instance connection) Address() string {
+	return instance.RemoteAddr().String()
+}
+func (instance connection) Read(buffer []byte) error {
+	for start := 0; start != len(buffer); {
+		amount, reason := instance.Conn.Read(buffer[start:])
 		if reason != nil {
 			return reason
 		}
 		start += amount
 	}
-	tcp.Index++
 	return nil
 }
-func (tcp *TcpMulticaster) Close() error {
-	var reasons []error
-	for _, connection := range tcp.Inbound {
-		reasons = append(reasons, connection.Close())
+func (instance connection) Write(buffer []byte) error {
+	for start := 0; start != len(buffer); {
+		amount, reason := instance.Conn.Write(buffer[start:])
+		if reason != nil {
+			return reason
+		}
+		start += amount
 	}
-	return reasons[0]
-}
-func (tcp *TcpMulticaster) IsOpen() bool {
-	return true
+	return nil
 }
 
-func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, error) {
+type pipe struct {
+	read  *io.PipeReader
+	write *io.PipeWriter
+}
+
+func (pipe *pipe) Read(buffer []byte) error {
+	for start := 0; start != len(buffer); {
+		amount, reason := pipe.read.Read(buffer[start:])
+		if reason != nil {
+			return reason
+		}
+		start += amount
+	}
+	return nil
+}
+func (pipe *pipe) Write(buffer []byte) error {
+	for start := 0; start != len(buffer); {
+		amount, reason := pipe.write.Write(buffer[start:])
+		if reason != nil {
+			return reason
+		}
+		start += amount
+	}
+	return nil
+}
+func (pipe *pipe) Close() error {
+	return multierr.Combine(pipe.read.Close(), pipe.write.Close())
+}
+
+func Pipe() Connection {
+	read, write := io.Pipe()
+	return &pipe{read, write}
+}
+
+func Connections(address string, port uint16, addresses ...string) ([]Connection, error) {
 	var control = func(network, address string, conn syscall.RawConn) error {
 		var reason error
 		if reason := conn.Control(func(fd uintptr) {
@@ -98,40 +154,35 @@ func TCP(address string, port uint16, addresses ...string) (*TcpMulticaster, err
 		Control: control,
 	}
 
-	var inbound = make([]net.Conn, len(addresses))
-	var outbound = make([]net.Conn, len(addresses))
 	var local = fmt.Sprintf("%s:%d", address, port)
 	server, reason := listener.Listen(context.Background(), "tcp", local)
 	if reason != nil {
 		return nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
 	}
-	var group sync.WaitGroup
-	var reasons error
-	group.Add(1)
-	go func() {
-		defer group.Done()
-		for i := 0; i < len(addresses); i++ {
-			client, reason := server.Accept()
-			if reason != nil {
-				reasons = multierr.Append(reasons, reason)
-				return
+	var connections = make([]Connection, len(addresses))
+	for i, other := range addresses {
+		//if we are trying to connect to us make a pipe
+		if other == address {
+			connections[i] = Pipe()
+			for range addresses[i+1:] {
+				client, reason := server.Accept()
+				if reason != nil {
+					return nil, reason
+				}
+				i++
+				connections[i] = connection{client}
 			}
-			inbound[i] = client
-		}
-	}()
-	for index, node := range addresses {
-		var remote = fmt.Sprintf("%s:%d", node, port)
-		for {
-			client, reason := dialer.Dial("tcp", remote)
-			if reason == nil {
-				outbound[index] = client
-				break
+			break
+		} else {
+			var remote = fmt.Sprintf("%s:%d", other, port)
+			for {
+				client, reason := dialer.Dial("tcp", remote)
+				if reason == nil {
+					connections[i] = connection{client}
+					break
+				}
 			}
 		}
 	}
-	group.Wait()
-	if reasons != nil {
-		return nil, reasons
-	}
-	return &TcpMulticaster{Inbound: inbound, Outbound: outbound}, nil
+	return connections, nil
 }
