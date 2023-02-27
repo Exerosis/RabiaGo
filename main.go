@@ -96,10 +96,10 @@ func run() error {
 	for i := uint32(0); i < Count; i++ {
 		var data = make([]byte, 4)
 		binary.LittleEndian.PutUint32(data, i)
-		reason := node.Propose(uint64(i), data)
-		if reason != nil {
-			return reason
-		}
+		//reason := node.Propose(uint64(i), data)
+		//if reason != nil {
+		//	return reason
+		//}
 		//propose(node, data)
 	}
 	complete.Wait()
