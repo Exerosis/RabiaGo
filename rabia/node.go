@@ -41,7 +41,7 @@ type node struct {
 	repairIndex int
 }
 
-const INFO = false
+const INFO = true
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	var compare = &Comparator{ComparingProposals}
