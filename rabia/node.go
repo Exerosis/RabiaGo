@@ -131,27 +131,27 @@ func (node *node) Run() error {
 	var log = node.log
 	//messages map ig?
 
-	//for _, inbound := range node.spreaders {
-	//	go func(inbound Connection) {
-	//		for {
-	//			var header = make([]byte, 12)
-	//			reason := inbound.Read(header)
-	//			if reason != nil {
-	//				panic(reason)
-	//			}
-	//			var id = binary.LittleEndian.Uint64(header[0:])
-	//			var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
-	//			reason = inbound.Read(header)
-	//			if reason != nil {
-	//				panic(reason)
-	//			}
-	//			node.proposeLock.Lock()
-	//			node.messages[id] = data
-	//			node.proposeLock.Unlock()
-	//			node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
-	//		}
-	//	}(inbound)
-	//}
+	for _, inbound := range node.spreaders {
+		go func(inbound Connection) {
+			for {
+				var header = make([]byte, 12)
+				reason := inbound.Read(header)
+				if reason != nil {
+					panic(reason)
+				}
+				var id = binary.LittleEndian.Uint64(header[0:])
+				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
+				reason = inbound.Read(header)
+				if reason != nil {
+					panic(reason)
+				}
+				node.proposeLock.Lock()
+				node.messages[id] = data
+				node.proposeLock.Unlock()
+				node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
+			}
+		}(inbound)
+	}
 	//var empty = make([]byte, 12)
 	//for _, inbound := range node.repair {
 	//	go func(connection Connection) {
