@@ -131,60 +131,60 @@ func (node *node) Run() error {
 	var log = node.log
 	//messages map ig?
 
-	for _, inbound := range node.spreaders {
-		go func(inbound Connection) {
-			for {
-				var header = make([]byte, 12)
-				reason := inbound.Read(header)
-				if reason != nil {
-					panic(reason)
-				}
-				var id = binary.LittleEndian.Uint64(header[0:])
-				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
-				reason = inbound.Read(header)
-				if reason != nil {
-					panic(reason)
-				}
-				node.proposeLock.Lock()
-				node.messages[id] = data
-				node.proposeLock.Unlock()
-				node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
-			}
-		}(inbound)
-	}
-	var empty = make([]byte, 12)
-	for _, inbound := range node.repair {
-		go func(connection Connection) {
-			var buffer = make([]byte, 8)
-			var header = make([]byte, 12)
-			for {
-				var reason = connection.Read(buffer)
-				if reason != nil {
-					panic(reason)
-				}
-				var highest = atomic.LoadInt64(&node.highest)
-				var index = binary.LittleEndian.Uint64(buffer)
-				if int64(index) <= highest {
-					var id = node.log.Logs[index]
-					node.proposeLock.RLock()
-					var message = node.messages[id]
-					node.proposeLock.RUnlock()
-					binary.LittleEndian.PutUint64(header[0:], id)
-					binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
-					reason = connection.Write(header)
-					if reason != nil {
-						panic(reason)
-					}
-					reason = connection.Write(message)
-				} else {
-					reason = connection.Write(empty)
-				}
-				if reason != nil {
-					panic(reason)
-				}
-			}
-		}(inbound)
-	}
+	//for _, inbound := range node.spreaders {
+	//	go func(inbound Connection) {
+	//		for {
+	//			var header = make([]byte, 12)
+	//			reason := inbound.Read(header)
+	//			if reason != nil {
+	//				panic(reason)
+	//			}
+	//			var id = binary.LittleEndian.Uint64(header[0:])
+	//			var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
+	//			reason = inbound.Read(header)
+	//			if reason != nil {
+	//				panic(reason)
+	//			}
+	//			node.proposeLock.Lock()
+	//			node.messages[id] = data
+	//			node.proposeLock.Unlock()
+	//			node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
+	//		}
+	//	}(inbound)
+	//}
+	//var empty = make([]byte, 12)
+	//for _, inbound := range node.repair {
+	//	go func(connection Connection) {
+	//		var buffer = make([]byte, 8)
+	//		var header = make([]byte, 12)
+	//		for {
+	//			var reason = connection.Read(buffer)
+	//			if reason != nil {
+	//				panic(reason)
+	//			}
+	//			var highest = atomic.LoadInt64(&node.highest)
+	//			var index = binary.LittleEndian.Uint64(buffer)
+	//			if int64(index) <= highest {
+	//				var id = node.log.Logs[index]
+	//				node.proposeLock.RLock()
+	//				var message = node.messages[id]
+	//				node.proposeLock.RUnlock()
+	//				binary.LittleEndian.PutUint64(header[0:], id)
+	//				binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
+	//				reason = connection.Write(header)
+	//				if reason != nil {
+	//					panic(reason)
+	//				}
+	//				reason = connection.Write(message)
+	//			} else {
+	//				reason = connection.Write(empty)
+	//			}
+	//			if reason != nil {
+	//				panic(reason)
+	//			}
+	//		}
+	//	}(inbound)
+	//}
 
 	//var mark = time.Now().UnixNano()
 	for index, pipe := range node.pipes {
