@@ -58,40 +58,40 @@ func run() error {
 		"192.168.1.3",
 	}
 
-	connections, reason := rabia.Connections(strings.Split(address.String(), "/")[0], 2000, addresses...)
-	println("Connected to everyone!")
-	for _, connection := range connections {
-		go func(connection rabia.Connection) {
-			var header = make([]byte, 4)
-			reason := connection.Read(header)
-			if reason != nil {
-				panic(reason)
-			}
-			var length = binary.LittleEndian.Uint32(header)
-			var message = make([]byte, length)
-			reason = connection.Read(message)
-			if reason != nil {
-				panic(reason)
-			}
-			println("Got: ", string(message))
-		}(connection)
-	}
-
-	var multicaster = rabia.Multicaster(connections)
-	var message = []byte("hello world")
-	var header = make([]byte, 4)
-	binary.LittleEndian.PutUint32(header, uint32(len(message)))
-	reason = multicaster.Write(header)
-	if reason != nil {
-		panic(reason)
-	}
-	reason = multicaster.Write(message)
-	if reason != nil {
-		panic(reason)
-	}
-
-	println("Done!")
-	time.Sleep(10 * time.Hour)
+	//connections, reason := rabia.Connections(strings.Split(address.String(), "/")[0], 2000, addresses...)
+	//println("Connected to everyone!")
+	//for _, connection := range connections {
+	//	go func(connection rabia.Connection) {
+	//		var header = make([]byte, 4)
+	//		reason := connection.Read(header)
+	//		if reason != nil {
+	//			panic(reason)
+	//		}
+	//		var length = binary.LittleEndian.Uint32(header)
+	//		var message = make([]byte, length)
+	//		reason = connection.Read(message)
+	//		if reason != nil {
+	//			panic(reason)
+	//		}
+	//		println("Got: ", string(message))
+	//	}(connection)
+	//}
+	//
+	//var multicaster = rabia.Multicaster(connections)
+	//var message = []byte("hello world")
+	//var header = make([]byte, 4)
+	//binary.LittleEndian.PutUint32(header, uint32(len(message)))
+	//reason = multicaster.Write(header)
+	//if reason != nil {
+	//	panic(reason)
+	//}
+	//reason = multicaster.Write(message)
+	//if reason != nil {
+	//	panic(reason)
+	//}
+	//
+	//println("Done!")
+	//time.Sleep(10 * time.Hour)
 
 	var pipes = make([]uint16, Pipes)
 	for i := range pipes {
