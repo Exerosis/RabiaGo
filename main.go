@@ -92,7 +92,6 @@ func run() error {
 	//
 	//println("Done!")
 	//time.Sleep(10 * time.Hour)
-	panic("Test")
 
 	var pipes = make([]uint16, Pipes)
 	for i := range pipes {
@@ -103,6 +102,11 @@ func run() error {
 	var node, reasons = rabia.MakeNode(strings.Split(address.String(), "/")[0], addresses, pipes...)
 	if reasons != nil {
 		return reasons
+	}
+
+	reason = node.Run()
+	if reason != nil {
+		panic(reason)
 	}
 	go func() {
 		reason := node.Run()
