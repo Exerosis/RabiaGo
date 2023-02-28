@@ -92,6 +92,7 @@ func run() error {
 	//
 	//println("Done!")
 	//time.Sleep(10 * time.Hour)
+	panic("Test")
 
 	var pipes = make([]uint16, Pipes)
 	for i := range pipes {
