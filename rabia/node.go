@@ -56,7 +56,7 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 			others = append(others, other)
 		}
 	}
-	spreaders, reason := Connections(address, 2000, others...)
+	spreaders, reason := Connections(address, 2000, addresses...)
 	if reason != nil {
 		return nil, reason
 	}
