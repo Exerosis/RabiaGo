@@ -72,10 +72,11 @@ func (node *node) Size() uint32 {
 }
 
 func (node *node) Repair(index uint64) (uint64, []byte, error) {
-	println("Trying to repair: ", index)
 	node.repairLock.Lock()
 	defer node.repairLock.Unlock()
+	println("Trying to repair: ", index)
 	var client = node.repair[node.repairIndex]
+	println("repairing with: ", client.(connection).Conn.RemoteAddr().String())
 	//node.repairIndex++
 	var buffer = make([]byte, 8)
 	binary.LittleEndian.PutUint64(buffer, index)
@@ -151,6 +152,7 @@ func (node *node) Run() error {
 	}
 	var empty = make([]byte, 12)
 	for _, inbound := range node.repair {
+		println("Repair channel: ", inbound.(connection).Conn.RemoteAddr().String())
 		go func(connection Connection) {
 			var buffer = make([]byte, 8)
 			var header = make([]byte, 12)
