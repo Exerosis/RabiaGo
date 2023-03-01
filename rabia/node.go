@@ -165,6 +165,8 @@ func (node *node) Run() error {
 					node.proposeLock.RLock()
 					var message = node.messages[id]
 					node.proposeLock.RUnlock()
+					println("Write id: ", id)
+					println("Write Amount: ", uint32(len(message)))
 					binary.LittleEndian.PutUint64(header[0:], id)
 					binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
 					reason = connection.Write(header)
