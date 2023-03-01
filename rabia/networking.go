@@ -28,8 +28,8 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 	var lock sync.Mutex
 	var reasons error
 	group.Add(len(multicaster.connections))
-	for i, connection := range multicaster.connections {
-		go func(i int, connection Connection) {
+	for i, c := range multicaster.connections {
+		go func(i int, c Connection) {
 			defer group.Done()
 			//reason := connection.SetDeadline(time.Now().Add(time.Second))
 			//if reason != nil {
@@ -38,13 +38,14 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 			//	reasons = multierr.Append(reasons, reason)
 			//	return
 			//}
-			reason := connection.Write(buffer)
+			reason := c.Write(buffer)
+			println("Sent to: ", c.(connection).Conn.RemoteAddr().String())
 			if reason != nil {
 				lock.Lock()
 				reasons = multierr.Append(reasons, reason)
 				lock.Unlock()
 			}
-		}(i, connection)
+		}(i, c)
 	}
 	group.Wait()
 	return reasons
