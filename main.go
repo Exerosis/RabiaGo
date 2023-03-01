@@ -24,7 +24,7 @@ import (
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
 const Pipes = 1
-const Count = uint32(10000)
+const Count = uint32(1)
 
 func run() error {
 	interfaces, reason := net.Interfaces()
