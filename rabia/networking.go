@@ -45,6 +45,7 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 			//}
 			println("trina write to one")
 			reason := connection.Write(buffer)
+			println("wrote")
 			if reason != nil {
 				lock.Lock()
 				reasons = multierr.Append(reasons, reason)
@@ -93,6 +94,7 @@ func (instance connection) Read(buffer []byte) error {
 	return nil
 }
 func (instance connection) Write(buffer []byte) error {
+	println("true write")
 	for start := 0; start != len(buffer); {
 		amount, reason := instance.Conn.Write(buffer[start:])
 		if reason != nil {
@@ -119,6 +121,7 @@ func (pipe *pipe) Read(buffer []byte) error {
 	return nil
 }
 func (pipe *pipe) Write(buffer []byte) error {
+	println("pipe write")
 	for start := 0; start != len(buffer); {
 		amount, reason := pipe.write.Write(buffer[start:])
 		if reason != nil {
