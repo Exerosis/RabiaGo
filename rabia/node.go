@@ -7,6 +7,7 @@ import (
 	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Node interface {
@@ -126,6 +127,7 @@ func (node *node) Propose(id uint64, data []byte) error {
 		node.proposeLock.Lock()
 		node.messages[id] = data
 		node.proposeLock.Unlock()
+		println("Offer Direct: ", id)
 		node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
 	}()
 	return nil
@@ -156,6 +158,7 @@ func (node *node) Run() error {
 				node.proposeLock.Lock()
 				node.messages[id] = data
 				node.proposeLock.Unlock()
+				println("Offer Network: ", id)
 				node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
 			}
 		}(inbound)
@@ -230,6 +233,7 @@ func (node *node) Run() error {
 				//}
 				//three++
 				var next = queue.Take()
+				time.Sleep(10 * time.Second)
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
 				//	time.Sleep(1000 * time.Millisecond)
@@ -248,8 +252,8 @@ func (node *node) Run() error {
 			}, func(slot uint16, message uint64) error {
 				println("Got: ", message)
 				if message != last {
-					println("Inconsistent")
 					if last != SKIP {
+						println("Offer Missed: ", last)
 						queue.Offer(Identifier{last})
 					}
 					if message != UNKNOWN {
@@ -257,8 +261,6 @@ func (node *node) Run() error {
 							println("Removed one!")
 						}
 					}
-				} else {
-					println("Fine!")
 				}
 				//if message != math.MaxUint64 {
 				//	fmt.Printf("[Pipe-%d] %d\n", index, message)
