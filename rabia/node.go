@@ -230,7 +230,6 @@ func (node *node) Run() error {
 				//}
 				//three++
 				var next = queue.Take()
-				println("Took: ", next)
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
 				//	time.Sleep(1000 * time.Millisecond)
@@ -244,6 +243,7 @@ func (node *node) Run() error {
 				//	//println("didn't noop")
 				//}
 				last = next.(Identifier).Value
+				println("Took: ", last)
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
 				println("Got: ", message)
