@@ -86,7 +86,7 @@ func run() error {
 				if err != nil {
 					return err
 				}
-				if bytes.Equal(message, data) || rpid != id {
+				if !bytes.Equal(message, data) || rpid != id {
 					panic("Reapir not working!")
 				}
 				if test == Count-1 {
