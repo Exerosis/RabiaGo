@@ -78,8 +78,7 @@ func run() error {
 		for {
 			reason := node.Consume(func(i uint64, id uint64, data []byte) error {
 				var test = binary.LittleEndian.Uint32(data)
-				println("handling: ", test)
-				if uint64(test) != id {
+				if uint64(test) != id-1 {
 					return errors.New("out of Order")
 				}
 				if test == Count-1 {
