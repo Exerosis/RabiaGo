@@ -82,15 +82,20 @@ func run() error {
 				if uint64(test) != id-1 {
 					return errors.New("out of Order")
 				}
-				rpid, message, err := node.Repair(i)
-				println("msg: ", len(message))
-				var t = binary.LittleEndian.Uint32(message)
-				println("got: ", t)
-				if err != nil {
-					return err
-				}
-				if !bytes.Equal(message, data) || rpid != id {
-					panic("Reapir not working!")
+				for {
+					rpid, message, err := node.Repair(i)
+					if rpid != 0 {
+						println("msg: ", len(message))
+						var t = binary.LittleEndian.Uint32(message)
+						println("got: ", t)
+						if err != nil {
+							return err
+						}
+						if !bytes.Equal(message, data) || rpid != id {
+							panic("Reapir not working!")
+						}
+						break
+					}
 				}
 				if test == Count-1 {
 					complete.Done()
