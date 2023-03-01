@@ -116,7 +116,9 @@ type pipe struct {
 
 func (pipe *pipe) Read(buffer []byte) error {
 	for start := 0; start != len(buffer); {
+		println("Going to read")
 		amount, reason := pipe.read.Read(buffer[start:])
+		println("read: ", amount)
 		if reason != nil {
 			return reason
 		}
