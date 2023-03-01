@@ -120,21 +120,6 @@ func propose(node rabia.Node, data []byte) {
 }
 
 func main() {
-	var pipe = rabia.Pipe(65536)
-	var out = make([]byte, 10)
-	var in = make([]byte, 10)
-	in[2] = 10
-	println("testing")
-	err := pipe.Write(in)
-	if err != nil {
-		panic(err)
-	}
-	err = pipe.Read(out)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%s\n", out)
-
 	//file, reason := os.Create("cpu.pprof")
 	//if reason != nil {
 	//	fmt.Println("failed: ", reason)
