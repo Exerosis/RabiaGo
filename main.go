@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -25,7 +24,7 @@ import (
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
 const Pipes = 1
-const Count = uint32(1)
+const Count = uint32(10000)
 
 func run() error {
 	interfaces, reason := net.Interfaces()
@@ -82,22 +81,8 @@ func run() error {
 				if uint64(test) != id-1 {
 					return errors.New("out of Order")
 				}
-				if strings.Split(address.String(), "/")[0] == "192.168.1.1" {
-					for {
-						rpid, message, err := node.Repair(i)
-						if err != nil {
-							return err
-						}
-						if rpid != 0 {
-							if !bytes.Equal(message, data) || rpid != id {
-								panic("Reapir not working!")
-							}
-							break
-						}
-					}
-				}
 				if test == Count-1 {
-					//complete.Done()
+					complete.Done()
 				}
 				return nil
 			})
