@@ -124,6 +124,7 @@ func main() {
 	var out = make([]byte, 10)
 	var in = make([]byte, 10)
 	in[2] = 10
+	println("testing")
 	err := pipe.Write(in)
 	if err != nil {
 		panic(err)
