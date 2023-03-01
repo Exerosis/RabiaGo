@@ -42,7 +42,7 @@ type node struct {
 	repairIndex    int
 }
 
-const INFO = true
+const INFO = false
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	var compare = &Comparator{ComparingProposals}
@@ -246,6 +246,7 @@ func (node *node) Run() error {
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
 				if message != last {
+					println("Inconsistent")
 					if last != SKIP {
 						queue.Offer(Identifier{last})
 					}
