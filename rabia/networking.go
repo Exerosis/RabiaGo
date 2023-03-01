@@ -44,9 +44,13 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 			//	reasons = multierr.Append(reasons, reason)
 			//	return
 			//}
-			println("start: ", i, " ", reflect.TypeOf(connection).String())
+			if reflect.TypeOf(connection).String() == "*rabia.pipe" {
+				println("start: ", i)
+			}
 			reason := connection.Write(buffer)
-			println("stop: ", i)
+			if reflect.TypeOf(connection).String() == "*rabia.pipe" {
+				println("stop: ", i)
+			}
 			if reason != nil {
 				lock.Lock()
 				reasons = multierr.Append(reasons, reason)
