@@ -96,7 +96,7 @@ func run() error {
 	for i := uint32(0); i < Count; i++ {
 		var data = make([]byte, 4)
 		binary.LittleEndian.PutUint32(data, i)
-		reason := node.Propose(uint64(i), data)
+		reason := node.Propose(uint64(i+1), data)
 		if reason != nil {
 			return reason
 		}
