@@ -49,7 +49,7 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	for i := range queues {
 		queues[i] = guc.NewPriorityBlockingQueueWithComparator(compare)
 	}
-	spreaders, reason := Connections(address, 2000, true, addresses...)
+	spreaders, reason := Connections(address, 2000, false, addresses...)
 	if reason != nil {
 		return nil, reason
 	}
@@ -167,8 +167,8 @@ func (node *node) Run() error {
 					node.proposeLock.RUnlock()
 					println("Write id: ", id)
 					println("Write Amount: ", uint32(len(message)))
-					binary.LittleEndian.PutUint64(header[0:], id)
-					binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
+					binary.LittleEndian.PutUint64(header[0:], uint64(uint32(len(message))))
+					binary.LittleEndian.PutUint32(header[8:], uint32(id))
 					reason = connection.Write(header)
 					if reason != nil {
 						panic(reason)
