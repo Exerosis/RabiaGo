@@ -43,6 +43,7 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 			//	reasons = multierr.Append(reasons, reason)
 			//	return
 			//}
+			println("trina write to one")
 			reason := connection.Write(buffer)
 			if reason != nil {
 				lock.Lock()
