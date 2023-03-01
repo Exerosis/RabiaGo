@@ -76,6 +76,7 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	node.repairLock.Lock()
 	defer node.repairLock.Unlock()
 	var client = node.repair[node.repairIndex]
+	node.repairIndex++
 	var buffer = make([]byte, 8)
 	binary.LittleEndian.PutUint64(buffer, index)
 	var reason = client.Write(buffer)
@@ -155,6 +156,7 @@ func (node *node) Run() error {
 			var header = make([]byte, 12)
 			for {
 				var reason = connection.Read(buffer)
+				println("Got 8 more bytes from client??")
 				if reason != nil {
 					panic(reason)
 				}
