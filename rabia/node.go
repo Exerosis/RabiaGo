@@ -152,7 +152,7 @@ func (node *node) Run() error {
 				}
 				var id = binary.LittleEndian.Uint64(header[0:])
 				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
-				reason = inbound.Read(header)
+				reason = inbound.Read(data)
 				if reason != nil {
 					panic(reason)
 				}
