@@ -46,6 +46,7 @@ outer:
 		}
 		LittleEndian.PutUint16(buffer[0:], current)
 		LittleEndian.PutUint64(buffer[2:], proposed)
+		println("Going to write ig?")
 		reason = proposes.Write(buffer[:SizeProvider])
 		if reason != nil {
 			return reason
