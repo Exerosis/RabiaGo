@@ -120,7 +120,7 @@ func propose(node rabia.Node, data []byte) {
 }
 
 func main() {
-	var pipe = rabia.Pipe()
+	var pipe = rabia.Pipe(65536)
 	var out = make([]byte, 10)
 	var in = make([]byte, 10)
 	in[2] = 10

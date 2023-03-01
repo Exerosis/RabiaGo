@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go.uber.org/multierr"
 	"golang.org/x/sys/unix"
-	"io"
 	"net"
 	"reflect"
 	"sync"
@@ -110,41 +109,28 @@ func (instance connection) Write(buffer []byte) error {
 }
 
 type pipe struct {
-	read  *io.PipeReader
-	write *io.PipeWriter
+	channel chan byte
 }
 
 func (pipe *pipe) Read(buffer []byte) error {
-	for start := 0; start != len(buffer); {
-		println("Going to read")
-		amount, reason := pipe.read.Read(buffer[start:])
-		println("read: ", amount)
-		if reason != nil {
-			return reason
-		}
-		start += amount
+	for i := range buffer {
+		buffer[i] = <-pipe.channel
 	}
 	return nil
 }
 func (pipe *pipe) Write(buffer []byte) error {
-	for start := 0; start != len(buffer); {
-		println("going to write")
-		amount, reason := pipe.write.Write(buffer[start:])
-		println("write here?")
-		if reason != nil {
-			return reason
-		}
-		start += amount
+	for i := range buffer {
+		pipe.channel <- buffer[i]
 	}
 	return nil
 }
 func (pipe *pipe) Close() error {
-	return multierr.Combine(pipe.read.Close(), pipe.write.Close())
+	close(pipe.channel)
+	return nil
 }
 
-func Pipe() Connection {
-	read, write := io.Pipe()
-	return &pipe{read, write}
+func Pipe(size uint32) Connection {
+	return &pipe{make(chan byte, size)}
 }
 
 func Connections(address string, port uint16, self bool, addresses ...string) ([]Connection, error) {
@@ -174,7 +160,7 @@ func Connections(address string, port uint16, self bool, addresses ...string) ([
 		//if we are trying to connect to us make a pipe
 		if other == address {
 			if self {
-				connections = append(connections, Pipe())
+				connections = append(connections, Pipe(65536))
 			}
 			for range addresses[i+1:] {
 				client, reason := server.Accept()
