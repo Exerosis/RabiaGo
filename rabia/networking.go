@@ -46,9 +46,8 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 			reason := connection.Write(buffer)
 			if reason != nil {
 				lock.Lock()
-				defer lock.Unlock()
 				reasons = multierr.Append(reasons, reason)
-				return
+				lock.Unlock()
 			}
 		}(connection)
 	}
