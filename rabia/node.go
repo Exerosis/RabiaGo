@@ -281,6 +281,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 	var highest = atomic.LoadInt64(&node.highest)
 outer:
 	for i := atomic.LoadUint64(&node.committed); int64(i) <= highest; i++ {
+		println("looking at: ", i)
 		var slot = i % uint64(len(node.log.Logs))
 		var proposal = node.log.Logs[slot]
 		if proposal == 0 {
