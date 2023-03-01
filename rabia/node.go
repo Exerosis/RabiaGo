@@ -158,7 +158,7 @@ func (node *node) Run() error {
 				var buffer = make([]byte, 8)
 				var header = make([]byte, 12)
 				var reason = connection.Read(buffer)
-				//println("Got 8 more bytes from client??")
+				println("Got 8 more bytes from client??")
 				if reason != nil {
 					panic(reason)
 				}
