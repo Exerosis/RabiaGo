@@ -31,13 +31,15 @@ type node struct {
 	highest     int64
 	consumeLock sync.Mutex
 
-	spreaders  []Connection
-	spreader   Connection
-	spreadLock sync.Mutex
+	spreadersInbound  []Connection
+	spreadersOutbound []Connection
+	spreader          Connection
+	spreadLock        sync.Mutex
 
-	repair      []Connection
-	repairLock  sync.Mutex
-	repairIndex int
+	repairInbound  []Connection
+	repairOutbound []Connection
+	repairLock     sync.Mutex
+	repairIndex    int
 }
 
 const INFO = true
@@ -49,11 +51,11 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	for i := range queues {
 		queues[i] = guc.NewPriorityBlockingQueueWithComparator(compare)
 	}
-	spreaders, reason := Connections(address, 2000, false, addresses...)
+	spreadersInbound, spreadersOutbound, reason := GroupSet(address, 2000, addresses...)
 	if reason != nil {
 		return nil, reason
 	}
-	repair, reason := Connections(address, 2001, false, addresses...)
+	repairInbound, repairOutbound, reason := GroupSet(address, 2001, addresses...)
 	if reason != nil {
 		return nil, reason
 	}
@@ -62,8 +64,9 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 		log, pipes, addresses, address,
 		queues, make(map[uint64][]byte), sync.RWMutex{},
 		uint64(0), int64(-1), sync.Mutex{},
-		spreaders, Multicaster(spreaders), sync.Mutex{},
-		repair, sync.Mutex{}, 0,
+		spreadersInbound, spreadersOutbound,
+		Multicaster(spreadersOutbound...), sync.Mutex{},
+		repairInbound, repairOutbound, sync.Mutex{}, 0,
 	}, nil
 }
 
@@ -75,7 +78,8 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	node.repairLock.Lock()
 	defer node.repairLock.Unlock()
 	println("Trying to repair: ", index)
-	var client = node.repair[node.repairIndex]
+	var client = node.repairOutbound[node.repairIndex]
+	node.repairIndex++
 	println("repairing with: ", client.(connection).Conn.RemoteAddr().String())
 	//node.repairIndex++
 	var buffer = make([]byte, 8)
@@ -129,7 +133,7 @@ func (node *node) Run() error {
 	var log = node.log
 	//messages map ig?
 
-	for _, inbound := range node.spreaders {
+	for _, inbound := range node.spreadersInbound {
 		go func(inbound Connection) {
 			for {
 				var header = make([]byte, 12)
@@ -151,7 +155,7 @@ func (node *node) Run() error {
 		}(inbound)
 	}
 	var empty = make([]byte, 12)
-	for _, inbound := range node.repair {
+	for _, inbound := range node.repairInbound {
 		println("Repair channel: ", inbound.(connection).Conn.RemoteAddr().String())
 		go func(connection Connection) {
 			for {
@@ -199,18 +203,18 @@ func (node *node) Run() error {
 			}
 
 			var current = uint64(index)
-			proposers, reason := Connections(node.address, pipe+1, true, node.addresses...)
-			staters, reason := Connections(node.address, pipe+2, true, node.addresses...)
-			voters, reason := Connections(node.address, pipe+3, true, node.addresses...)
+			proposers, reason := Group(node.address, pipe+1, node.addresses...)
+			staters, reason := Group(node.address, pipe+2, node.addresses...)
+			voters, reason := Group(node.address, pipe+3, node.addresses...)
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
 				var result = fmt.Errorf("failed to connect %d: %s", index, reason)
 				reasons = multierr.Append(reasons, result)
 			}
-			var proposals = Multicaster(proposers)
-			var states = Multicaster(staters)
-			var votes = Multicaster(voters)
+			var proposals = Multicaster(proposers...)
+			var states = Multicaster(staters...)
+			var votes = Multicaster(voters...)
 			info("Connected!\n")
 			//var three = 0
 			var last uint64

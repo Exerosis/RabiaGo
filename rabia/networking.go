@@ -23,10 +23,6 @@ type multicaster struct {
 	closed      atomic.Bool
 }
 
-func Multicaster(connections []Connection) Connection {
-	return &multicaster{connections: connections}
-}
-
 func (multicaster *multicaster) Write(buffer []byte) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
@@ -126,42 +122,39 @@ func Pipe(size uint32) Connection {
 	return &pipe{make(chan byte, size)}
 }
 
-func Connections(address string, port uint16, self bool, addresses ...string) ([]Connection, error) {
-	var control = func(network, address string, conn syscall.RawConn) error {
-		var reason error
-		if reason := conn.Control(func(fd uintptr) {
-			reason = unix.SetsockoptInt(int(fd), syscall.IPPROTO_TCP, syscall.TCP_NODELAY, 1)
-		}); reason != nil {
-			return reason
-		}
+func control(network, address string, conn syscall.RawConn) error {
+	var reason error
+	if reason := conn.Control(func(fd uintptr) {
+		reason = unix.SetsockoptInt(int(fd), syscall.IPPROTO_TCP, syscall.TCP_NODELAY, 1)
+	}); reason != nil {
 		return reason
 	}
-	var listener = net.ListenConfig{
-		Control: control,
-	}
-	var dialer = &net.Dialer{
-		Control: control,
-	}
+	return reason
+}
 
+func Multicaster(connections ...Connection) Connection {
+	return &multicaster{connections: connections}
+}
+func Group(address string, port uint16, addresses ...string) ([]Connection, error) {
+	var listener = net.ListenConfig{Control: control}
+	var dialer = &net.Dialer{Control: control}
 	var local = fmt.Sprintf("%s:%d", address, port)
 	server, reason := listener.Listen(context.Background(), "tcp", local)
 	if reason != nil {
 		return nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
 	}
-	var connections []Connection
+	var connections = make([]Connection, len(addresses))
 	for i, other := range addresses {
 		//if we are trying to connect to us make a pipe
 		if other == address {
-			if self {
-				connections = append(connections, Pipe(65536))
-			}
+			connections[i] = Pipe(65536)
 			for range addresses[i+1:] {
 				client, reason := server.Accept()
 				if reason != nil {
 					return nil, reason
 				}
 				i++
-				connections = append(connections, connection{client})
+				connections[i] = connection{client}
 			}
 			break
 		} else {
@@ -169,11 +162,48 @@ func Connections(address string, port uint16, self bool, addresses ...string) ([
 			for {
 				client, reason := dialer.Dial("tcp", remote)
 				if reason == nil {
-					connections = append(connections, connection{client})
+					connections[i] = connection{client}
 					break
 				}
 			}
 		}
 	}
 	return connections, nil
+}
+func GroupSet(address string, port uint16, addresses ...string) ([]Connection, []Connection, error) {
+	var listener = net.ListenConfig{Control: control}
+	var dialer = &net.Dialer{Control: control}
+	var local = fmt.Sprintf("%s:%d", address, port)
+	server, reason := listener.Listen(context.Background(), "tcp", local)
+	if reason != nil {
+		return nil, nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
+	}
+	var group sync.WaitGroup
+	var outbound = make([]Connection, len(addresses))
+	group.Add(1)
+	go func() {
+		for i, other := range addresses {
+			var remote = fmt.Sprintf("%s:%d", other, port)
+			for {
+				client, reason := dialer.Dial("tcp", remote)
+				if reason == nil {
+					outbound[i] = connection{client}
+					break
+				}
+			}
+		}
+		group.Done()
+	}()
+
+	var inbound = make([]Connection, len(addresses))
+	for i := range addresses {
+		client, reason := server.Accept()
+		if reason != nil {
+			return nil, nil, reason
+		}
+		inbound[i] = connection{client}
+	}
+
+	group.Wait()
+	return inbound, outbound, nil
 }
