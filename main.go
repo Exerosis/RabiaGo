@@ -93,6 +93,7 @@ func run() error {
 		}
 	}()
 
+	var start = time.Now()
 	if strings.Split(address.String(), "/")[0] == "192.168.1.1" {
 		for i := uint32(0); i < Count; i++ {
 			var data = make([]byte, 4)
@@ -105,7 +106,7 @@ func run() error {
 		}
 	}
 	complete.Wait()
-	println("Done!")
+	fmt.Printf("Done! %.2fk/ops", float64(Count)/1000/time.Since(start).Seconds())
 	return nil
 }
 
