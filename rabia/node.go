@@ -87,8 +87,8 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	if reason != nil {
 		return 0, nil, reason
 	}
-	var amount = binary.LittleEndian.Uint64(header[0:])
-	var id = binary.LittleEndian.Uint32(header[8:])
+	var id = binary.LittleEndian.Uint64(header[0:])
+	var amount = binary.LittleEndian.Uint32(header[8:])
 	println("id: ", id)
 	println("amount: ", amount)
 	var message = make([]byte, amount)
@@ -96,7 +96,7 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	if reason != nil {
 		return 0, nil, reason
 	}
-	return uint64(id), message, nil
+	return id, message, nil
 }
 
 func (node *node) Propose(id uint64, data []byte) error {
