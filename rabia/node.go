@@ -51,11 +51,17 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	for i := range queues {
 		queues[i] = guc.NewPriorityBlockingQueueWithComparator(compare)
 	}
-	spreadersInbound, spreadersOutbound, reason := GroupSet(address, 2000, addresses...)
+	var others []string
+	for _, other := range addresses {
+		if other != address {
+			others = append(others, other)
+		}
+	}
+	spreadersInbound, spreadersOutbound, reason := GroupSet(address, 2000, others...)
 	if reason != nil {
 		return nil, reason
 	}
-	repairInbound, repairOutbound, reason := GroupSet(address, 2001, addresses...)
+	repairInbound, repairOutbound, reason := GroupSet(address, 2001, others...)
 	if reason != nil {
 		return nil, reason
 	}
