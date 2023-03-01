@@ -98,6 +98,7 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 }
 
 func (node *node) Propose(id uint64, data []byte) error {
+	println("prop")
 	header := make([]byte, 12)
 	binary.LittleEndian.PutUint64(header[0:], id)
 	binary.LittleEndian.PutUint32(header[8:], uint32(len(data)))
