@@ -128,7 +128,9 @@ func (pipe *pipe) Read(buffer []byte) error {
 }
 func (pipe *pipe) Write(buffer []byte) error {
 	for start := 0; start != len(buffer); {
+		println("going to write")
 		amount, reason := pipe.write.Write(buffer[start:])
+		println("write here?")
 		if reason != nil {
 			return reason
 		}
