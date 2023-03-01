@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/better-concurrent/guc"
 	"go.uber.org/multierr"
-	"reflect"
 	"sync"
 	"sync/atomic"
 )
@@ -152,13 +151,12 @@ func (node *node) Run() error {
 	}
 	var empty = make([]byte, 12)
 	for _, inbound := range node.repair {
-		println(reflect.TypeOf(inbound).String())
 		go func(connection Connection) {
 			var buffer = make([]byte, 8)
 			var header = make([]byte, 12)
 			for {
 				var reason = connection.Read(buffer)
-				//println("Got 8 more bytes from client??")
+				println("Got 8 more bytes from client??")
 				if reason != nil {
 					panic(reason)
 				}
@@ -169,8 +167,8 @@ func (node *node) Run() error {
 					node.proposeLock.RLock()
 					var message = node.messages[id]
 					node.proposeLock.RUnlock()
-					//println("Write id: ", id)
-					//println("Write Amount: ", uint32(len(message)))
+					println("Write id: ", id)
+					println("Write Amount: ", uint32(len(message)))
 					binary.LittleEndian.PutUint64(header[0:], id)
 					binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
 					reason = connection.Write(header)
