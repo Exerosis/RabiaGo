@@ -231,6 +231,7 @@ func (node *node) Run() error {
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
+				println("Slot[", slot, "] = ", message)
 				if message == SKIP {
 					if last != GIVE_UP {
 						queue.Offer(Identifier{last})
