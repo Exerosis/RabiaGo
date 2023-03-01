@@ -119,15 +119,14 @@ func (node *node) Propose(id uint64, data []byte) error {
 	var send = append(header, data...)
 	go func() {
 		node.spreadLock.Lock()
-		defer node.spreadLock.Unlock()
 		reason := node.spreader.Write(send)
+		node.spreadLock.Unlock()
 		if reason != nil {
 			panic(reason)
 		}
 		node.proposeLock.Lock()
 		node.messages[id] = data
 		node.proposeLock.Unlock()
-		println("Offer Direct: ", id)
 		node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
 	}()
 	return nil
@@ -159,7 +158,6 @@ func (node *node) Run() error {
 				node.proposeLock.Lock()
 				node.messages[id] = data
 				node.proposeLock.Unlock()
-				println("Offer Network: ", id)
 				node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
 			}
 		}(inbound)
@@ -254,7 +252,6 @@ func (node *node) Run() error {
 				println("Got: ", message)
 				if message != last {
 					if last != SKIP {
-						println("Offer Missed: ", last)
 						queue.Offer(Identifier{last})
 					}
 					if message != UNKNOWN {
