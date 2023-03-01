@@ -81,7 +81,9 @@ func run() error {
 				if uint64(test) != id-1 {
 					return errors.New("out of Order")
 				}
-				//if strings.Split(address.String(), "/")[0] == "192.168.1.1" {
+				if strings.Split(address.String(), "/")[0] == "192.168.1.1" {
+					node.Repair(i)
+				}
 				//	for {
 				//		rpid, _, err := node.Repair(i)
 				//		if err != nil {
