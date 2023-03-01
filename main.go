@@ -68,11 +68,6 @@ func run() error {
 	if reasons != nil {
 		return reasons
 	}
-
-	reason = node.Run()
-	if reason != nil {
-		panic(reason)
-	}
 	go func() {
 		reason := node.Run()
 		if reason != nil {

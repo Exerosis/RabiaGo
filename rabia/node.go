@@ -7,7 +7,6 @@ import (
 	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 type Node interface {
@@ -99,7 +98,6 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 }
 
 func (node *node) Propose(id uint64, data []byte) error {
-	println("proposed")
 	header := make([]byte, 12)
 	binary.LittleEndian.PutUint64(header[0:], id)
 	binary.LittleEndian.PutUint32(header[8:], uint32(len(data)))
@@ -218,19 +216,18 @@ func (node *node) Run() error {
 				//}
 				//three++
 				var next = queue.Take()
-				println("next: ", next)
-				if next == nil {
-					println("considering noop ", queue.Size())
-					time.Sleep(1000 * time.Millisecond)
-					next = queue.Poll()
-					if next == nil {
-						next = Identifier{GIVE_UP}
-					} else {
-						println("Second time avoided noop")
-					}
-				} else {
-					//println("didn't noop")
-				}
+				//if next == nil {
+				//	println("considering noop ", queue.Size())
+				//	time.Sleep(1000 * time.Millisecond)
+				//	next = queue.Poll()
+				//	if next == nil {
+				//		next = Identifier{GIVE_UP}
+				//	} else {
+				//		println("Second time avoided noop")
+				//	}
+				//} else {
+				//	//println("didn't noop")
+				//}
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
