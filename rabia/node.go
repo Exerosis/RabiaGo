@@ -143,7 +143,6 @@ func (node *node) Run() error {
 		go func(inbound Connection) {
 			var header = make([]byte, 12)
 			for {
-				println("Reading for network")
 				reason := inbound.Read(header)
 				if reason != nil {
 					panic(reason)
@@ -244,10 +243,8 @@ func (node *node) Run() error {
 				//	//println("didn't noop")
 				//}
 				last = next.(Identifier).Value
-				println("Took: ", last)
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				println("Got: ", message)
 				if message != last {
 					if last != SKIP {
 						queue.Offer(Identifier{last})
