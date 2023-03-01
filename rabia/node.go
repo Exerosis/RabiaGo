@@ -73,6 +73,7 @@ func (node *node) Size() uint32 {
 }
 
 func (node *node) Repair(index uint64) (uint64, []byte, error) {
+	println("Trying to repair: ", index)
 	node.repairLock.Lock()
 	defer node.repairLock.Unlock()
 	var client = node.repair[node.repairIndex]
