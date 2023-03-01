@@ -84,7 +84,7 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	node.repairLock.Lock()
 	defer node.repairLock.Unlock()
 	println("Trying to repair: ", index)
-	var client = node.repairOutbound[node.repairIndex]
+	var client = node.repairOutbound[node.repairIndex%len(node.repairOutbound)]
 	node.repairIndex++
 	println("repairing with: ", client.(connection).Conn.RemoteAddr().String())
 	//node.repairIndex++
@@ -303,17 +303,17 @@ outer:
 			//if we hit the first unfilled slot stop
 			break
 		}
-		if proposal == GIVE_UP {
+		if proposal == SKIP {
 			continue
 		}
 		if proposal == UNKNOWN {
 			for {
 				id, repaired, _ := node.Repair(i)
 				if id != 0 {
-					if id == GIVE_UP {
+					node.log.Logs[i] = id
+					if id == SKIP {
 						continue outer
 					}
-					node.log.Logs[i] = id
 					node.proposeLock.Lock()
 					node.messages[id] = repaired
 					node.proposeLock.Unlock()

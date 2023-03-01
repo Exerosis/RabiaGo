@@ -12,12 +12,11 @@ const SizeProvider = 10 * Multiplier
 const SizeVote = 3 * Multiplier
 const SizeState = 3 * Multiplier
 
-const GIVE_UP = math.MaxUint64 - 2
 const UNKNOWN = math.MaxUint64 - 1
 const SKIP = math.MaxUint64
 
 func IsValid(id uint64) bool {
-	return id != 0 && id < GIVE_UP
+	return id != 0 && id < UNKNOWN
 }
 
 // new = a current = b
