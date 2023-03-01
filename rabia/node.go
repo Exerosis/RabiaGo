@@ -143,8 +143,9 @@ func (node *node) Run() error {
 
 	for _, inbound := range node.spreadersInbound {
 		go func(inbound Connection) {
+			var header = make([]byte, 12)
 			for {
-				var header = make([]byte, 12)
+				println("Reading for network")
 				reason := inbound.Read(header)
 				if reason != nil {
 					panic(reason)
