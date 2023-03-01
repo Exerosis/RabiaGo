@@ -6,7 +6,6 @@ import (
 	"go.uber.org/multierr"
 	"golang.org/x/sys/unix"
 	"net"
-	"reflect"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -43,13 +42,7 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 			//	reasons = multierr.Append(reasons, reason)
 			//	return
 			//}
-			if reflect.TypeOf(connection).String() == "*rabia.pipe" {
-				println("start: ", i)
-			}
 			reason := connection.Write(buffer)
-			if reflect.TypeOf(connection).String() == "*rabia.pipe" {
-				println("stop: ", i)
-			}
 			if reason != nil {
 				lock.Lock()
 				reasons = multierr.Append(reasons, reason)
