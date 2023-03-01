@@ -154,9 +154,9 @@ func (node *node) Run() error {
 	for _, inbound := range node.repair {
 		println("Repair channel: ", inbound.(connection).Conn.RemoteAddr().String())
 		go func(connection Connection) {
-			var buffer = make([]byte, 8)
-			var header = make([]byte, 12)
 			for {
+				var buffer = make([]byte, 8)
+				var header = make([]byte, 12)
 				var reason = connection.Read(buffer)
 				//println("Got 8 more bytes from client??")
 				if reason != nil {
