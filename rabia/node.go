@@ -245,15 +245,14 @@ func (node *node) Run() error {
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				if message == SKIP {
-					if last != GIVE_UP {
+				if message != last {
+					if last != SKIP {
 						queue.Offer(Identifier{last})
 					}
-					return nil
-				}
-				if message != last && message != UNKNOWN {
-					if queue.Remove(Identifier{message}) {
-						println("Removed one!")
+					if message != UNKNOWN {
+						if queue.Remove(Identifier{message}) {
+							println("Removed one!")
+						}
 					}
 				}
 				//if message != math.MaxUint64 {

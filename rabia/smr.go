@@ -201,5 +201,4 @@ outer:
 			continue outer
 		}
 	}
-	return nil
 }
