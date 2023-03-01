@@ -255,6 +255,8 @@ func (node *node) Run() error {
 							println("Removed one!")
 						}
 					}
+				} else {
+					println("Fine!")
 				}
 				//if message != math.MaxUint64 {
 				//	fmt.Printf("[Pipe-%d] %d\n", index, message)
