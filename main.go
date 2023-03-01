@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -80,6 +81,13 @@ func run() error {
 				var test = binary.LittleEndian.Uint32(data)
 				if uint64(test) != id-1 {
 					return errors.New("out of Order")
+				}
+				rpid, message, err := node.Repair(i)
+				if err != nil {
+					return err
+				}
+				if bytes.Equal(message, data) || rpid != id {
+					panic("Reapir not working!")
 				}
 				if test == Count-1 {
 					complete.Done()
