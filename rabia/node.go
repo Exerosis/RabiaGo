@@ -161,14 +161,14 @@ func (node *node) Run() error {
 				var highest = atomic.LoadInt64(&node.highest)
 				var index = binary.LittleEndian.Uint64(buffer)
 				if int64(index) <= highest {
-					var id = node.log.Logs[index]
+					var id = node.log.Logs[index%uint64(node.log.Size)]
 					node.proposeLock.RLock()
 					var message = node.messages[id]
 					node.proposeLock.RUnlock()
 					println("Write id: ", id)
 					println("Write Amount: ", uint32(len(message)))
-					binary.LittleEndian.PutUint64(header[0:], uint64(uint32(len(message))))
-					binary.LittleEndian.PutUint32(header[8:], uint32(id))
+					binary.LittleEndian.PutUint64(header[0:], id)
+					binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
 					reason = connection.Write(header)
 					if reason != nil {
 						panic(reason)
