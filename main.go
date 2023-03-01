@@ -95,7 +95,7 @@ func run() error {
 					}
 				}
 				if test == Count-1 {
-					complete.Done()
+					//complete.Done()
 				}
 				return nil
 			})
