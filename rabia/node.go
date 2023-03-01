@@ -89,6 +89,8 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	}
 	var id = binary.LittleEndian.Uint64(header[0:])
 	var amount = binary.LittleEndian.Uint32(header[8:])
+	println("id: ", id)
+	println("amount: ", amount)
 	var message = make([]byte, amount)
 	reason = client.Read(message)
 	if reason != nil {
@@ -297,6 +299,10 @@ outer:
 					if id == GIVE_UP {
 						continue outer
 					}
+					node.log.Logs[i] = id
+					node.proposeLock.Lock()
+					node.messages[id] = repaired
+					node.proposeLock.Unlock()
 					reason := block(i, id, repaired)
 					if reason != nil {
 						return reason
@@ -305,12 +311,9 @@ outer:
 				}
 			}
 		} else {
-			node.proposeLock.Lock()
+			node.proposeLock.RLock()
 			data, present := node.messages[proposal]
-			if present {
-				delete(node.messages, proposal)
-			}
-			node.proposeLock.Unlock()
+			node.proposeLock.RUnlock()
 			if !present {
 				for {
 					id, repaired, _ := node.Repair(i)
@@ -318,6 +321,9 @@ outer:
 						if id != proposal {
 							panic("SMR HAS FAILED CATASTROPHICALLY!")
 						}
+						node.proposeLock.Lock()
+						node.messages[id] = repaired
+						node.proposeLock.Unlock()
 						data = repaired
 						break
 					}
