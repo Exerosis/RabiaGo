@@ -7,6 +7,7 @@ import (
 	"golang.org/x/sys/unix"
 	"io"
 	"net"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -33,8 +34,8 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 	var lock sync.Mutex
 	var reasons error
 	group.Add(len(multicaster.connections))
-	for _, connection := range multicaster.connections {
-		go func(connection Connection) {
+	for i, connection := range multicaster.connections {
+		go func(i int, connection Connection) {
 			defer group.Done()
 			//reason := connection.SetDeadline(time.Now().Add(time.Second))
 			//if reason != nil {
@@ -43,15 +44,15 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 			//	reasons = multierr.Append(reasons, reason)
 			//	return
 			//}
-			println("trina write to one")
+			println("start: ", i, " ", reflect.TypeOf(connection))
 			reason := connection.Write(buffer)
-			println("wrote")
+			println("stop: ", i)
 			if reason != nil {
 				lock.Lock()
 				reasons = multierr.Append(reasons, reason)
 				lock.Unlock()
 			}
-		}(connection)
+		}(i, connection)
 	}
 	group.Wait()
 	return reasons
