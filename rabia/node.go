@@ -162,7 +162,6 @@ func (node *node) Run() error {
 	}
 	var empty = make([]byte, 12)
 	for _, inbound := range node.repairInbound {
-		println("Repair channel: ", inbound.(connection).Conn.RemoteAddr().String())
 		go func(connection Connection) {
 			var buffer = make([]byte, 8)
 			var header = make([]byte, 12)
