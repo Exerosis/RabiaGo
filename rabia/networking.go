@@ -39,7 +39,6 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 			//	return
 			//}
 			reason := c.Write(buffer)
-			println("Sent to: ", c.(connection).Conn.RemoteAddr().String())
 			if reason != nil {
 				lock.Lock()
 				reasons = multierr.Append(reasons, reason)
