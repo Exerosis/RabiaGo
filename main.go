@@ -83,7 +83,9 @@ func run() error {
 					return errors.New("out of Order")
 				}
 				rpid, message, err := node.Repair(i)
-				println("got: ", rpid)
+				println("msg: ", len(message))
+				var t = binary.LittleEndian.Uint32(message)
+				println("got: ", t)
 				if err != nil {
 					return err
 				}
