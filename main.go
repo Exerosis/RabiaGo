@@ -83,6 +83,7 @@ func run() error {
 					return errors.New("out of Order")
 				}
 				rpid, message, err := node.Repair(i)
+				println("got: ", rpid)
 				if err != nil {
 					return err
 				}
