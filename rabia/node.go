@@ -216,7 +216,8 @@ func (node *node) Run() error {
 				//	}
 				//}
 				//three++
-				var next = queue.Poll()
+				var next = queue.Take()
+				println("next: ", next)
 				if next == nil {
 					println("considering noop ", queue.Size())
 					time.Sleep(1000 * time.Millisecond)
