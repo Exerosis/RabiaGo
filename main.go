@@ -93,8 +93,6 @@ func run() error {
 		}
 	}()
 
-	time.Sleep(2 * time.Second)
-
 	if strings.Split(address.String(), "/")[0] == "192.168.1.1" {
 		for i := uint32(0); i < Count; i++ {
 			var data = make([]byte, 4)

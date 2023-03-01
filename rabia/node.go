@@ -7,7 +7,6 @@ import (
 	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 type Node interface {
@@ -43,7 +42,7 @@ type node struct {
 	repairIndex    int
 }
 
-const INFO = true
+const INFO = false
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	var compare = &Comparator{ComparingProposals}
@@ -232,7 +231,6 @@ func (node *node) Run() error {
 				//}
 				//three++
 				var next = queue.Take()
-				time.Sleep(10 * time.Second)
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
 				//	time.Sleep(1000 * time.Millisecond)
