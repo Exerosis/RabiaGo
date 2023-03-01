@@ -50,17 +50,11 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	for i := range queues {
 		queues[i] = guc.NewPriorityBlockingQueueWithComparator(compare)
 	}
-	var others []string
-	for _, other := range addresses {
-		if other != address {
-			others = append(others, other)
-		}
-	}
-	spreaders, reason := Connections(address, 2000, addresses...)
+	spreaders, reason := Connections(address, 2000, true, addresses...)
 	if reason != nil {
 		return nil, reason
 	}
-	repair, reason := Connections(address, 2001, others...)
+	repair, reason := Connections(address, 2001, false, addresses...)
 	if reason != nil {
 		return nil, reason
 	}
@@ -197,9 +191,9 @@ func (node *node) Run() error {
 			}
 
 			var current = uint64(index)
-			proposers, reason := Connections(node.address, pipe+1, node.addresses...)
-			staters, reason := Connections(node.address, pipe+2, node.addresses...)
-			voters, reason := Connections(node.address, pipe+3, node.addresses...)
+			proposers, reason := Connections(node.address, pipe+1, true, node.addresses...)
+			staters, reason := Connections(node.address, pipe+2, true, node.addresses...)
+			voters, reason := Connections(node.address, pipe+3, true, node.addresses...)
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()

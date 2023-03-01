@@ -139,7 +139,7 @@ func Pipe() Connection {
 	return &pipe{read, write}
 }
 
-func Connections(address string, port uint16, addresses ...string) ([]Connection, error) {
+func Connections(address string, port uint16, self bool, addresses ...string) ([]Connection, error) {
 	var control = func(network, address string, conn syscall.RawConn) error {
 		var reason error
 		if reason := conn.Control(func(fd uintptr) {
@@ -161,18 +161,20 @@ func Connections(address string, port uint16, addresses ...string) ([]Connection
 	if reason != nil {
 		return nil, fmt.Errorf("binding server to %s:%d: %w", address, port, reason)
 	}
-	var connections = make([]Connection, len(addresses))
+	var connections []Connection
 	for i, other := range addresses {
 		//if we are trying to connect to us make a pipe
 		if other == address {
-			connections[i] = Pipe()
+			if self {
+				connections = append(connections, Pipe())
+			}
 			for range addresses[i+1:] {
 				client, reason := server.Accept()
 				if reason != nil {
 					return nil, reason
 				}
 				i++
-				connections[i] = connection{client}
+				connections = append(connections, connection{client})
 			}
 			break
 		} else {
@@ -180,7 +182,7 @@ func Connections(address string, port uint16, addresses ...string) ([]Connection
 			for {
 				client, reason := dialer.Dial("tcp", remote)
 				if reason == nil {
-					connections[i] = connection{client}
+					connections = append(connections, connection{client})
 					break
 				}
 			}
