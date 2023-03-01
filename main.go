@@ -84,13 +84,14 @@ func run() error {
 				}
 				for {
 					rpid, message, err := node.Repair(i)
+					if err != nil {
+						return err
+					}
 					if rpid != 0 {
+						println("rpid: ", rpid)
 						println("msg: ", len(message))
 						var t = binary.LittleEndian.Uint32(message)
 						println("got: ", t)
-						if err != nil {
-							return err
-						}
 						if !bytes.Equal(message, data) || rpid != id {
 							panic("Reapir not working!")
 						}
