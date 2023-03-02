@@ -76,12 +76,16 @@ func run() error {
 	}()
 	go func() {
 		for {
+			var count = 0
 			reason := node.Consume(func(i uint64, id uint64, data []byte) error {
 				var test = binary.LittleEndian.Uint32(data)
 				//if uint64(test) != id-1 {
 				//	return errors.New("out of Order")
 				//}
-				println("Submitted: ", test)
+				if count%100 == 0 {
+					println("Submitted: ", test)
+				}
+				count++
 				if test == Count-1 {
 					complete.Done()
 				}
@@ -106,7 +110,7 @@ func run() error {
 		}
 	}
 	complete.Wait()
-	fmt.Printf("Done! %.2fk/ops", float64(Count)/1000/time.Since(start).Seconds())
+	fmt.Printf("Done! %.2fk/ops\n", float64(Count)/1000/time.Since(start).Seconds())
 	return nil
 }
 

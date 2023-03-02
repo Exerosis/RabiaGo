@@ -229,6 +229,7 @@ func (node *node) Run() error {
 				//	}
 				//}
 				//three++
+				println("Size: ", queue.Size())
 				var next = queue.Take()
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
@@ -246,6 +247,7 @@ func (node *node) Run() error {
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
 				if message != last {
+					println("Inconsistent")
 					if last != SKIP {
 						queue.Offer(Identifier{last})
 					}
