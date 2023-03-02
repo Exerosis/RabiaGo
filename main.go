@@ -82,7 +82,7 @@ func run() error {
 				//if uint64(test) != id-1 {
 				//	return errors.New("out of Order")
 				//}
-				if count%100 == 0 {
+				if count%1000 == 0 {
 					println("Submitted: ", test)
 				}
 				count++

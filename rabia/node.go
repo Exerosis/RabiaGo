@@ -229,7 +229,6 @@ func (node *node) Run() error {
 				//	}
 				//}
 				//three++
-				println("Size: ", queue.Size())
 				var next = queue.Take()
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
