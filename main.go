@@ -113,6 +113,7 @@ func run() error {
 	}
 	complete.Wait()
 	fmt.Printf("Done! %.2fk/ops\n", float64(Count)/1000/time.Since(start).Seconds())
+	time.Sleep(5 * time.Second)
 	return nil
 }
 
