@@ -98,28 +98,61 @@ func (instance connection) Write(buffer []byte) error {
 }
 
 type pipe struct {
-	channel chan byte
+	cond   *sync.Cond
+	buffer []byte
+	read   int
+	write  int
 }
 
 func (pipe *pipe) Read(buffer []byte) error {
-	for i := range buffer {
-		buffer[i] = <-pipe.channel
+	pipe.cond.L.Lock()
+	defer pipe.cond.L.Unlock()
+
+	for pipe.read == pipe.write {
+		pipe.cond.Wait()
 	}
+
+	n := copy(buffer, pipe.buffer[pipe.read:pipe.write])
+	pipe.read += n
+
+	if pipe.read == pipe.write {
+		pipe.read = 0
+		pipe.write = 0
+	}
+
+	pipe.cond.Broadcast()
+
 	return nil
 }
+
 func (pipe *pipe) Write(buffer []byte) error {
-	for i := range buffer {
-		pipe.channel <- buffer[i]
+	pipe.cond.L.Lock()
+	defer pipe.cond.L.Unlock()
+
+	for len(pipe.buffer)-pipe.write < len(buffer) {
+		pipe.cond.Wait()
 	}
+
+	n := copy(pipe.buffer[pipe.write:], buffer)
+	pipe.write += n
+
+	pipe.cond.Broadcast()
+
 	return nil
 }
+
 func (pipe *pipe) Close() error {
-	close(pipe.channel)
+	pipe.cond.L.Lock()
+	defer pipe.cond.L.Unlock()
 	return nil
 }
 
 func Pipe(size uint32) Connection {
-	return &pipe{make(chan byte, size)}
+	p := &pipe{
+		cond:   sync.NewCond(&sync.Mutex{}),
+		buffer: make([]byte, size),
+	}
+	return p
 }
 
 func control(network, address string, conn syscall.RawConn) error {
