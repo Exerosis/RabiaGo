@@ -7,8 +7,6 @@ import (
 	"github.com/exerosis/RabiaGo/rabia"
 	"math/rand"
 	"net"
-	"os"
-	"runtime/pprof"
 	"strings"
 	"sync"
 	"time"
@@ -129,16 +127,16 @@ func propose(node rabia.Node, data []byte) {
 }
 
 func main() {
-	file, reason := os.Create("cpu.pprof")
-	if reason != nil {
-		fmt.Println("failed: ", reason)
-	}
-	reason = pprof.StartCPUProfile(file)
-	if reason != nil {
-		fmt.Println("failed: ", reason)
-	}
-	defer pprof.StopCPUProfile()
-	reason = run()
+	//file, reason := os.Create("cpu.pprof")
+	//if reason != nil {
+	//	fmt.Println("failed: ", reason)
+	//}
+	//reason = pprof.StartCPUProfile(file)
+	//if reason != nil {
+	//	fmt.Println("failed: ", reason)
+	//}
+	//defer pprof.StopCPUProfile()
+	reason := run()
 	if reason != nil {
 		fmt.Println("failed: ", reason)
 	}

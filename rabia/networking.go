@@ -104,46 +104,56 @@ type pipe struct {
 	write  int
 }
 
-func (pipe *pipe) Read(buffer []byte) error {
-	pipe.cond.L.Lock()
-	defer pipe.cond.L.Unlock()
+func (p *pipe) Read(buffer []byte) error {
+	p.cond.L.Lock()
+	defer p.cond.L.Unlock()
 
-	for pipe.read == pipe.write {
-		pipe.cond.Wait()
+	for p.read == p.write {
+		p.cond.Wait()
 	}
 
-	n := copy(buffer, pipe.buffer[pipe.read:pipe.write])
-	pipe.read += n
+	for len(buffer) > 0 {
+		if p.read == p.write {
+			p.cond.Wait()
+		}
 
-	if pipe.read == pipe.write {
-		pipe.read = 0
-		pipe.write = 0
+		n := copy(buffer, p.buffer[p.read:p.write])
+		p.read += n
+		buffer = buffer[n:]
 	}
 
-	pipe.cond.Broadcast()
+	if p.read == p.write {
+		p.read = 0
+		p.write = 0
+	}
+
+	p.cond.Broadcast()
 
 	return nil
 }
 
-func (pipe *pipe) Write(buffer []byte) error {
-	pipe.cond.L.Lock()
-	defer pipe.cond.L.Unlock()
+func (p *pipe) Write(buffer []byte) error {
+	p.cond.L.Lock()
+	defer p.cond.L.Unlock()
 
-	for len(pipe.buffer)-pipe.write < len(buffer) {
-		pipe.cond.Wait()
+	for len(buffer) > 0 {
+		if len(p.buffer)-p.write < len(buffer) {
+			p.cond.Wait()
+		}
+
+		n := copy(p.buffer[p.write:], buffer)
+		p.write += n
+		buffer = buffer[n:]
 	}
 
-	n := copy(pipe.buffer[pipe.write:], buffer)
-	pipe.write += n
-
-	pipe.cond.Broadcast()
+	p.cond.Broadcast()
 
 	return nil
 }
 
-func (pipe *pipe) Close() error {
-	pipe.cond.L.Lock()
-	defer pipe.cond.L.Unlock()
+func (p *pipe) Close() error {
+	p.cond.L.Lock()
+	defer p.cond.L.Unlock()
 	return nil
 }
 
