@@ -172,29 +172,91 @@ func (instance connection) Write(buffer []byte) error {
 //}
 
 type pipe struct {
-	channel chan byte
+	cond   *sync.Cond
+	buffer []byte
+	read   int
+	write  int
 }
 
-func (pipe *pipe) Read(buffer []byte) error {
-	for i := range buffer {
-		buffer[i] = <-pipe.channel
+func (p *pipe) Read(buffer []byte) error {
+	p.cond.L.Lock()
+	defer p.cond.L.Unlock()
+
+	for p.read == p.write {
+		p.cond.Wait()
 	}
+
+	for i := range buffer {
+		if p.read == p.write {
+			break
+		}
+
+		buffer[i] = p.buffer[p.read]
+		p.read = (p.read + 1) % len(p.buffer)
+	}
+
+	p.cond.Signal()
+
 	return nil
 }
-func (pipe *pipe) Write(buffer []byte) error {
-	for i := range buffer {
-		pipe.channel <- buffer[i]
+
+func (p *pipe) Write(buffer []byte) error {
+	p.cond.L.Lock()
+	defer p.cond.L.Unlock()
+
+	for len(buffer) > 0 {
+		if len(p.buffer)-p.write < len(buffer) {
+			p.cond.Wait()
+		}
+
+		n := copy(p.buffer[p.write:], buffer)
+		p.write = (p.write + n) % len(p.buffer)
+		buffer = buffer[n:]
 	}
+
+	p.cond.Signal()
+
 	return nil
 }
-func (pipe *pipe) Close() error {
-	close(pipe.channel)
+
+func (p *pipe) Close() error {
+	p.cond.L.Lock()
+	defer p.cond.L.Unlock()
 	return nil
 }
 
 func Pipe(size uint32) Connection {
-	return &pipe{make(chan byte, size)}
+	p := &pipe{
+		cond:   sync.NewCond(&sync.Mutex{}),
+		buffer: make([]byte, size),
+	}
+	return p
 }
+
+//type pipe struct {
+//	channel chan byte
+//}
+//
+//func (pipe *pipe) Read(buffer []byte) error {
+//	for i := range buffer {
+//		buffer[i] = <-pipe.channel
+//	}
+//	return nil
+//}
+//func (pipe *pipe) Write(buffer []byte) error {
+//	for i := range buffer {
+//		pipe.channel <- buffer[i]
+//	}
+//	return nil
+//}
+//func (pipe *pipe) Close() error {
+//	close(pipe.channel)
+//	return nil
+//}
+//
+//func Pipe(size uint32) Connection {
+//	return &pipe{make(chan byte, size)}
+//}
 
 func control(network, address string, conn syscall.RawConn) error {
 	var reason error
