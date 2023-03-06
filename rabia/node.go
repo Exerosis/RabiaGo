@@ -230,7 +230,6 @@ func (node *node) Run() error {
 				//}
 				//three++
 				var next = queue.Take()
-				println("Size: ", queue.Size())
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
 				//	time.Sleep(1000 * time.Millisecond)
