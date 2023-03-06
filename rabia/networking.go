@@ -133,6 +133,8 @@ func (p *pipe) Read(buffer []byte) error {
 }
 
 func (p *pipe) Write(buffer []byte) error {
+	println("Started writing")
+	defer println("Stopped writing")
 	p.cond.L.Lock()
 	defer p.cond.L.Unlock()
 
