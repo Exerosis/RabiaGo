@@ -120,8 +120,8 @@ func run() error {
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
-	//return runOld(address, addresses, pipes)
-	return runNew(address, addresses, pipes)
+	return runOld(address, addresses, pipes)
+	//return runNew(address, addresses, pipes)
 }
 
 func propose(node rabia.Node, data []byte) {
