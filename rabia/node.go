@@ -111,6 +111,11 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	return id, message, nil
 }
 
+func queueForId(id uint64) uint64 {
+	//return id>>32
+	return id
+}
+
 func (node *node) Propose(id uint64, data []byte) error {
 	header := make([]byte, 12)
 	binary.LittleEndian.PutUint64(header[0:], id)
@@ -126,7 +131,7 @@ func (node *node) Propose(id uint64, data []byte) error {
 		node.proposeLock.Lock()
 		node.messages[id] = data
 		node.proposeLock.Unlock()
-		node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
+		node.queues[queueForId(id)%uint64(len(node.queues))].Offer(Identifier{id})
 	}()
 	return nil
 }
@@ -156,7 +161,7 @@ func (node *node) Run() error {
 				node.proposeLock.Lock()
 				node.messages[id] = data
 				node.proposeLock.Unlock()
-				node.queues[id>>32%uint64(len(node.queues))].Offer(Identifier{id})
+				node.queues[queueForId(id)%uint64(len(node.queues))].Offer(Identifier{id})
 			}
 		}(inbound)
 	}
