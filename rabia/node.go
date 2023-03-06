@@ -264,17 +264,18 @@ func (node *node) Run() error {
 				for value < int64(current) && !atomic.CompareAndSwapInt64(&node.highest, value, int64(current)) {
 					value = atomic.LoadInt64(&node.highest)
 				}
-				current += uint64(len(node.pipes))
 				var committed = atomic.LoadUint64(&node.committed)
-				node.proposeLock.Lock()
-				delete(node.messages, log.Logs[current%uint64(log.Size)])
-				node.proposeLock.Unlock()
 				//have to wait here until the next slot has been consumed
 				if current-committed >= uint64(log.Size) {
 					for current-committed >= uint64(log.Size) {
 					}
 					println("Thank you! I was turbo wrapping :(")
 				}
+
+				current += uint64(len(node.pipes))
+				node.proposeLock.Lock()
+				delete(node.messages, log.Logs[current%uint64(log.Size)])
+				node.proposeLock.Unlock()
 				log.Logs[current%uint64(log.Size)] = 0
 				return nil
 			}, info)
