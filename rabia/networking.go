@@ -3,6 +3,7 @@ package rabia
 import (
 	"context"
 	"fmt"
+	"github.com/BertoldVdb/go-misc/bufferedpipe"
 	"go.uber.org/multierr"
 	"golang.org/x/sys/unix"
 	"net"
@@ -172,63 +173,37 @@ func (instance connection) Write(buffer []byte) error {
 //}
 
 type pipe struct {
-	cond   *sync.Cond
-	buffer []byte
-	read   int
-	write  int
+	*bufferedpipe.BufferedPipe
 }
 
 func (p *pipe) Read(buffer []byte) error {
-	p.cond.L.Lock()
-	defer p.cond.L.Unlock()
-
-	for p.read == p.write {
-		p.cond.Wait()
-	}
-
-	for i := range buffer {
-		if p.read == p.write {
-			break
+	for start := 0; start != len(buffer); {
+		amount, reason := p.BufferedPipe.Read(buffer[start:])
+		if reason != nil {
+			return reason
 		}
-
-		buffer[i] = p.buffer[p.read]
-		p.read = (p.read + 1) % len(p.buffer)
+		start += amount
 	}
-
-	p.cond.Signal()
-
 	return nil
 }
-
 func (p *pipe) Write(buffer []byte) error {
-	p.cond.L.Lock()
-	defer p.cond.L.Unlock()
-
-	for len(buffer) > 0 {
-		if len(p.buffer)-p.write < len(buffer) {
-			p.cond.Wait()
+	for start := 0; start != len(buffer); {
+		amount, reason := p.BufferedPipe.Write(buffer[start:])
+		if reason != nil {
+			return reason
 		}
-
-		n := copy(p.buffer[p.write:], buffer)
-		p.write = (p.write + n) % len(p.buffer)
-		buffer = buffer[n:]
+		start += amount
 	}
-
-	p.cond.Signal()
-
 	return nil
 }
 
 func (p *pipe) Close() error {
-	p.cond.L.Lock()
-	defer p.cond.L.Unlock()
-	return nil
+	return p.BufferedPipe.Close()
 }
 
 func Pipe(size uint32) Connection {
 	p := &pipe{
-		cond:   sync.NewCond(&sync.Mutex{}),
-		buffer: make([]byte, size),
+		bufferedpipe.NewBufferedPipe(int(size)),
 	}
 	return p
 }
