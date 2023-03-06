@@ -117,14 +117,15 @@ func (p *pipe) Read(buffer []byte) error {
 			p.cond.Wait()
 		}
 
-		n := copy(buffer, p.buffer[p.read:p.write])
-		p.read += n
+		n := copy(buffer, p.buffer[p.read:])
+		p.read = (p.read + n) % len(p.buffer)
 		buffer = buffer[n:]
-	}
 
-	if p.read == p.write {
-		p.read = 0
-		p.write = 0
+		if p.read == p.write {
+			p.read = 0
+			p.write = 0
+			break
+		}
 	}
 
 	p.cond.Broadcast()
@@ -133,8 +134,6 @@ func (p *pipe) Read(buffer []byte) error {
 }
 
 func (p *pipe) Write(buffer []byte) error {
-	println("Started writing")
-	defer println("Stopped writing")
 	p.cond.L.Lock()
 	defer p.cond.L.Unlock()
 
@@ -144,8 +143,12 @@ func (p *pipe) Write(buffer []byte) error {
 		}
 
 		n := copy(p.buffer[p.write:], buffer)
-		p.write += n
+		p.write = (p.write + n) % len(p.buffer)
 		buffer = buffer[n:]
+
+		if len(buffer) > 0 && p.write == p.read {
+			p.cond.Wait()
+		}
 	}
 
 	p.cond.Broadcast()
