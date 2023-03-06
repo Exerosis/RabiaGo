@@ -205,6 +205,7 @@ func (node *node) Run() error {
 			}
 
 			var current = uint64(index)
+			println("Starting with: ", current)
 			proposers, reason := Group(node.address, pipe+1, node.addresses...)
 			staters, reason := Group(node.address, pipe+2, node.addresses...)
 			voters, reason := Group(node.address, pipe+3, node.addresses...)
