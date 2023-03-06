@@ -1,14 +1,12 @@
 package main
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/exerosis/RabiaGo/rabia"
 	"math/rand"
 	"net"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -62,57 +60,58 @@ func run() error {
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
-	var complete sync.WaitGroup
-	complete.Add(1)
-	var node, reasons = rabia.MakeNode(strings.Split(address.String(), "/")[0], addresses, pipes...)
-	if reasons != nil {
-		return reasons
-	}
-	go func() {
-		reason := node.Run()
-		if reason != nil {
-			panic(reason)
-		}
-	}()
-	go func() {
-		var count = 0
-		for {
-			time.Sleep(time.Second)
-			reason := node.Consume(func(i uint64, id uint64, data []byte) error {
-				var test = binary.LittleEndian.Uint32(data)
-				//if uint64(test) != id-1 {
-				//	return errors.New("out of Order")
-				//}
-				if count%1000 == 0 {
-					println("Submitted: ", test)
-				}
-				count++
-				if test == Count-1 {
-					complete.Done()
-				}
-				return nil
-			})
-			if reason != nil {
-				panic(reason)
-			}
-		}
-	}()
+	return rabia.OldNode(3, strings.Split(address.String(), "/")[0], addresses, pipes...)
+	//var complete sync.WaitGroup
+	//complete.Add(1)
+	//var node, reasons = rabia.MakeNode(strings.Split(address.String(), "/")[0], addresses, pipes...)
+	//if reasons != nil {
+	//	return reasons
+	//}
+	//go func() {
+	//	reason := node.Run()
+	//	if reason != nil {
+	//		panic(reason)
+	//	}
+	//}()
+	//go func() {
+	//	var count = 0
+	//	for {
+	//		time.Sleep(time.Second)
+	//		reason := node.Consume(func(i uint64, id uint64, data []byte) error {
+	//			var test = binary.LittleEndian.Uint32(data)
+	//			//if uint64(test) != id-1 {
+	//			//	return errors.New("out of Order")
+	//			//}
+	//			if count%1000 == 0 {
+	//				println("Submitted: ", test)
+	//			}
+	//			count++
+	//			if test == Count-1 {
+	//				complete.Done()
+	//			}
+	//			return nil
+	//		})
+	//		if reason != nil {
+	//			panic(reason)
+	//		}
+	//	}
+	//}()
 
-	var start = time.Now()
-	if strings.Split(address.String(), "/")[0] == "192.168.1.1" {
-		for i := uint32(0); i < Count; i++ {
-			var data = make([]byte, 4)
-			binary.LittleEndian.PutUint32(data, i)
-			reason := node.Propose(uint64(i+1), data)
-			if reason != nil {
-				return reason
-			}
-			//propose(node, data)
-		}
-	}
-	complete.Wait()
-	fmt.Printf("Done! %.2fk/ops\n", float64(Count)/1000/time.Since(start).Seconds())
-	return nil
+	//var start = time.Now()
+	//if strings.Split(address.String(), "/")[0] == "192.168.1.1" {
+	//	for i := uint32(0); i < Count; i++ {
+	//		var data = make([]byte, 4)
+	//		binary.LittleEndian.PutUint32(data, i)
+	//		reason := node.Propose(uint64(i+1), data)
+	//		if reason != nil {
+	//			return reason
+	//		}
+	//		//propose(node, data)
+	//	}
+	//}
+	//complete.Wait()
+	//fmt.Printf("Done! %.2fk/ops\n", float64(Count)/1000/time.Since(start).Seconds())
+	//return nil
 }
 
 func propose(node rabia.Node, data []byte) {
