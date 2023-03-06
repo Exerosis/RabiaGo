@@ -23,7 +23,7 @@ import (
 // 256 - 139 (1m)
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
-const Pipes = 2
+const Pipes = 1
 const Count = uint32(10000)
 
 func run() error {
