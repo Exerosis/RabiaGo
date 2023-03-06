@@ -266,9 +266,10 @@ func (node *node) Run() error {
 				}
 				current += uint64(len(node.pipes))
 				var committed = atomic.LoadUint64(&node.committed)
+				var test = log.Logs[current%uint64(log.Size)]
 				go func() {
 					node.proposeLock.Lock()
-					delete(node.messages, log.Logs[current%uint64(log.Size)])
+					delete(node.messages, test)
 					node.proposeLock.Unlock()
 				}()
 				//have to wait here until the next slot has been consumed
