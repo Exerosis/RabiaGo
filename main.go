@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/exerosis/RabiaGo/rabia"
 	"math/rand"
 	"net"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -24,94 +26,102 @@ import (
 const Pipes = 1
 const Count = uint32(10000)
 
+func runOld(address string, addresses []string, pipes []uint16) error {
+	return rabia.OldNode(3, address, addresses, pipes...)
+}
+
+func runNew(address string, addresses []string, pipes []uint16) error {
+	var complete sync.WaitGroup
+	complete.Add(1)
+	var node, reasons = rabia.MakeNode(address, addresses, pipes...)
+	if reasons != nil {
+		return reasons
+	}
+	go func() {
+		reason := node.Run()
+		if reason != nil {
+			panic(reason)
+		}
+	}()
+	go func() {
+		var count = 0
+		for {
+			time.Sleep(time.Second)
+			reason := node.Consume(func(i uint64, id uint64, data []byte) error {
+				var test = binary.LittleEndian.Uint32(data)
+				//if uint64(test) != id-1 {
+				//	return errors.New("out of Order")
+				//}
+				if count%1000 == 0 {
+					println("Submitted: ", test)
+				}
+				count++
+				if test == Count-1 {
+					complete.Done()
+				}
+				return nil
+			})
+			if reason != nil {
+				panic(reason)
+			}
+		}
+	}()
+
+	var start = time.Now()
+	if address == "192.168.1.1" {
+		for i := uint32(0); i < Count; i++ {
+			var data = make([]byte, 4)
+			binary.LittleEndian.PutUint32(data, i)
+			reason := node.Propose(uint64(i+1), data)
+			if reason != nil {
+				return reason
+			}
+			//propose(node, data)
+		}
+	}
+	complete.Wait()
+	fmt.Printf("Done! %.2fk/ops\n", float64(Count)/1000/time.Since(start).Seconds())
+	return nil
+}
+
 func run() error {
 	interfaces, reason := net.Interfaces()
 	if reason != nil {
 		return reason
 	}
 	var network net.Interface
-	var address net.Addr
+	var device net.Addr
 	for _, i := range interfaces {
 		addresses, reason := i.Addrs()
 		if reason != nil {
 			return reason
 		}
-		for _, a := range addresses {
-			if strings.Contains(a.String(), "192.168.1.") {
-				address = a
+		for _, d := range addresses {
+			if strings.Contains(d.String(), "192.168.1.") {
+				device = d
 				network = i
 			}
 		}
 	}
-	if address == nil {
+	if device == nil {
 		return errors.New("couldn't find interface")
 	}
 
 	fmt.Printf("Interface: %s\n", network.Name)
-	fmt.Printf("Address: %s\n", address)
+	fmt.Printf("Address: %s\n", device)
 
+	var address = strings.Split(device.String(), "/")[0]
 	var addresses = []string{
 		"192.168.1.1",
 		"192.168.1.2",
 		"192.168.1.3",
 	}
-
 	var pipes = make([]uint16, Pipes)
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
-	return rabia.OldNode(3, strings.Split(address.String(), "/")[0], addresses, pipes...)
-	//var complete sync.WaitGroup
-	//complete.Add(1)
-	//var node, reasons = rabia.MakeNode(strings.Split(address.String(), "/")[0], addresses, pipes...)
-	//if reasons != nil {
-	//	return reasons
-	//}
-	//go func() {
-	//	reason := node.Run()
-	//	if reason != nil {
-	//		panic(reason)
-	//	}
-	//}()
-	//go func() {
-	//	var count = 0
-	//	for {
-	//		time.Sleep(time.Second)
-	//		reason := node.Consume(func(i uint64, id uint64, data []byte) error {
-	//			var test = binary.LittleEndian.Uint32(data)
-	//			//if uint64(test) != id-1 {
-	//			//	return errors.New("out of Order")
-	//			//}
-	//			if count%1000 == 0 {
-	//				println("Submitted: ", test)
-	//			}
-	//			count++
-	//			if test == Count-1 {
-	//				complete.Done()
-	//			}
-	//			return nil
-	//		})
-	//		if reason != nil {
-	//			panic(reason)
-	//		}
-	//	}
-	//}()
-
-	//var start = time.Now()
-	//if strings.Split(address.String(), "/")[0] == "192.168.1.1" {
-	//	for i := uint32(0); i < Count; i++ {
-	//		var data = make([]byte, 4)
-	//		binary.LittleEndian.PutUint32(data, i)
-	//		reason := node.Propose(uint64(i+1), data)
-	//		if reason != nil {
-	//			return reason
-	//		}
-	//		//propose(node, data)
-	//	}
-	//}
-	//complete.Wait()
-	//fmt.Printf("Done! %.2fk/ops\n", float64(Count)/1000/time.Since(start).Seconds())
-	//return nil
+	//return runOld(address, addresses, pipes)
+	return runNew(address, addresses, pipes)
 }
 
 func propose(node rabia.Node, data []byte) {
