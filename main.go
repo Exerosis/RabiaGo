@@ -24,7 +24,7 @@ import (
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
 const Pipes = 2
-const Count = uint32(10000)
+const Count = uint32(4)
 
 func runOld(address string, addresses []string, pipes []uint16) error {
 	return rabia.OldNode(3, address, addresses, pipes...)
@@ -120,8 +120,8 @@ func run() error {
 	for i := range pipes {
 		pipes[i] = uint16(3000 + (i * 10))
 	}
-	return runOld(address, addresses, pipes)
-	//return runNew(address, addresses, pipes)
+	//return runOld(address, addresses, pipes)
+	return runNew(address, addresses, pipes)
 }
 
 func propose(node rabia.Node, data []byte) {
