@@ -230,6 +230,7 @@ func (node *node) Run() error {
 				//}
 				//three++
 				var next = queue.Take()
+				println("Size: ", queue.Size())
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
 				//	time.Sleep(1000 * time.Millisecond)
@@ -266,12 +267,9 @@ func (node *node) Run() error {
 				}
 				current += uint64(len(node.pipes))
 				var committed = atomic.LoadUint64(&node.committed)
-				var test = log.Logs[current%uint64(log.Size)]
-				go func() {
-					node.proposeLock.Lock()
-					delete(node.messages, test)
-					node.proposeLock.Unlock()
-				}()
+				node.proposeLock.Lock()
+				delete(node.messages, log.Logs[current%uint64(log.Size)])
+				node.proposeLock.Unlock()
 				//have to wait here until the next slot has been consumed
 				if current-committed >= uint64(log.Size) {
 					for current-committed >= uint64(log.Size) {
