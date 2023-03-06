@@ -23,7 +23,7 @@ import (
 // 256 - 139 (1m)
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
-const Pipes = 1
+const Pipes = 2
 const Count = uint32(10000)
 
 func run() error {
@@ -77,7 +77,7 @@ func run() error {
 	go func() {
 		var count = 0
 		for {
-			time.Sleep(time.Second)
+			time.Sleep(5 * time.Minute)
 			reason := node.Consume(func(i uint64, id uint64, data []byte) error {
 				var test = binary.LittleEndian.Uint32(data)
 				//if uint64(test) != id-1 {
