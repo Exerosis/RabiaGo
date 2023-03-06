@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-const Multiplier = 2000
+const Multiplier = 1
 const SizeBuffer = 10 * Multiplier
 const SizeProvider = 10 * Multiplier
 const SizeVote = 3 * Multiplier
