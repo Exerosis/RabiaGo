@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/shirou/gopsutil/v3/cpu"
 	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
@@ -63,14 +62,10 @@ func Node(
 					amount = atomic.LoadUint32(&count)
 				}
 				if amount >= AVERAGE {
-					percent, reason := cpu.Percent(0, false)
-					if reason != nil {
-						return reason
-					}
 					var duration = time.Since(time.Unix(0, atomic.LoadInt64(&mark)))
 					atomic.StoreInt64(&mark, time.Now().UnixNano())
 					var throughput = float64(amount) / duration.Seconds()
-					fmt.Printf("%d - %.2f\n", uint32(throughput), percent[0])
+					fmt.Printf("%d\n", uint32(throughput))
 				}
 				i++
 				if i == len(instance)-1 {

@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
-	"runtime/pprof"
 	"strings"
 )
 
@@ -26,7 +24,7 @@ const INFO = false
 // 1024 - 138 (1m)
 const Pipes = 1024
 
-const Multiplier = 1000
+const Multiplier = 1
 const SizeBuffer = 10 * Multiplier
 const SizeProvider = 10 * Multiplier
 const SizeVote = 3 * Multiplier
@@ -71,16 +69,16 @@ func run() error {
 }
 
 func main() {
-	file, reason := os.Create("cpu.pprof")
-	if reason != nil {
-		fmt.Println("failed: ", reason)
-	}
-	reason = pprof.StartCPUProfile(file)
-	if reason != nil {
-		fmt.Println("failed: ", reason)
-	}
-	defer pprof.StopCPUProfile()
-	reason = run()
+	//file, reason := os.Create("cpu.pprof")
+	//if reason != nil {
+	//	fmt.Println("failed: ", reason)
+	//}
+	//reason = pprof.StartCPUProfile(file)
+	//if reason != nil {
+	//	fmt.Println("failed: ", reason)
+	//}
+	//defer pprof.StopCPUProfile()
+	reason := run()
 	if reason != nil {
 		fmt.Println("failed: ", reason)
 	}
