@@ -59,7 +59,6 @@ func OldNode(
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				return uint16(current % log.Size), instance[i], nil
 			}, func(slot uint16, message uint64) error {
-				fmt.Println("Working?")
 				var amount = atomic.AddUint32(&count, 1)
 				for amount >= AVERAGE && !atomic.CompareAndSwapUint32(&count, amount, 0) {
 					amount = atomic.LoadUint32(&count)
