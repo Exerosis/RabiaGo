@@ -77,7 +77,7 @@ func run() error {
 	go func() {
 		var count = 0
 		for {
-			time.Sleep(5 * time.Minute)
+			time.Sleep(2 * time.Minute)
 			reason := node.Consume(func(i uint64, id uint64, data []byte) error {
 				var test = binary.LittleEndian.Uint32(data)
 				//if uint64(test) != id-1 {
