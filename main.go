@@ -23,7 +23,7 @@ import (
 // 256 - 139 (1m)
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
-const Pipes = 1
+const Pipes = 4
 const Count = uint32(100_000)
 
 func runOld(address string, addresses []string, pipes []uint16) error {
