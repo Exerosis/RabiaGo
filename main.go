@@ -24,7 +24,7 @@ import (
 // 512 - 138 (1m)
 // 1024 - 138 (1m)
 const Pipes = 1
-const Count = uint32(200)
+const Count = uint32(10_000)
 
 func runOld(address string, addresses []string, pipes []uint16) error {
 	return rabia.OldNode(3, address, addresses, pipes...)
