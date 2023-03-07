@@ -12,6 +12,7 @@ const SizeProvider = 10 * Multiplier
 const SizeVote = 3 * Multiplier
 const SizeState = 3 * Multiplier
 
+const NONE = 0
 const UNKNOWN = math.MaxUint64 - 1
 const SKIP = math.MaxUint64
 

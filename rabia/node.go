@@ -251,12 +251,15 @@ func (node *node) Run() error {
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				if message != last {
+				if message == SKIP {
 					println("Inconsistent")
+				}
+				if message != last {
 					if last != SKIP {
 						queue.Offer(Identifier{last})
 					}
 					if message != UNKNOWN {
+						println("removing ig?")
 						if queue.Remove(Identifier{message}) {
 							println("Removed one!")
 						}
@@ -282,7 +285,7 @@ func (node *node) Run() error {
 				node.proposeLock.Lock()
 				delete(node.messages, log.Logs[current%uint64(log.Size)])
 				node.proposeLock.Unlock()
-				log.Logs[current%uint64(log.Size)] = 0
+				log.Logs[current%uint64(log.Size)] = NONE
 				return nil
 			}, info)
 			if reason != nil {
@@ -306,7 +309,7 @@ outer:
 	for i := atomic.LoadUint64(&node.committed); int64(i) <= highest; i++ {
 		var slot = i % uint64(len(node.log.Logs))
 		var proposal = node.log.Logs[slot]
-		if proposal == 0 {
+		if proposal == NONE {
 			highest = int64(i)
 			//if we hit the first unfilled slot stop
 			break
