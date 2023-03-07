@@ -45,7 +45,7 @@ type node struct {
 	removeLocks []*sync.Mutex
 }
 
-const INFO = false
+const INFO = true
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	var compare = &Comparator{ComparingProposals}
