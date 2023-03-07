@@ -276,8 +276,9 @@ func (node *node) Run() error {
 					}
 					if message < UNKNOWN {
 						println("Going to remove: ", message)
-						if queue.Remove(Identifier{message}) {
-							println("Removed one!")
+						if !queue.Remove(Identifier{message}) {
+							//eventually store this message waiting for someone to try to add it to the queue.
+							panic("Down the road this will be unrecoverable!")
 						}
 					}
 
@@ -325,7 +326,6 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 	node.consumeLock.Lock()
 	defer node.consumeLock.Unlock()
 	var highest = atomic.LoadInt64(&node.highest)
-outer:
 	for i := atomic.LoadUint64(&node.committed); int64(i) <= highest; i++ {
 		var slot = i % uint64(len(node.log.Logs))
 		var proposal = node.log.Logs[slot]
@@ -337,47 +337,27 @@ outer:
 		if proposal == SKIP {
 			continue
 		}
-		if proposal == UNKNOWN {
+		node.proposeLock.RLock()
+		data, present := node.messages[proposal]
+		node.proposeLock.RUnlock()
+		if !present {
 			for {
 				id, repaired, _ := node.Repair(i)
 				if id != 0 {
-					node.log.Logs[i] = id
-					if id == SKIP {
-						continue outer
+					if id != proposal {
+						panic("SMR HAS FAILED CATASTROPHICALLY!")
 					}
 					node.proposeLock.Lock()
 					node.messages[id] = repaired
 					node.proposeLock.Unlock()
-					reason := block(i, id, repaired)
-					if reason != nil {
-						return reason
-					}
+					data = repaired
 					break
 				}
 			}
-		} else {
-			node.proposeLock.RLock()
-			data, present := node.messages[proposal]
-			node.proposeLock.RUnlock()
-			if !present {
-				for {
-					id, repaired, _ := node.Repair(i)
-					if id != 0 {
-						if id != proposal {
-							panic("SMR HAS FAILED CATASTROPHICALLY!")
-						}
-						node.proposeLock.Lock()
-						node.messages[id] = repaired
-						node.proposeLock.Unlock()
-						data = repaired
-						break
-					}
-				}
-			}
-			reason := block(i, proposal, data)
-			if reason != nil {
-				return reason
-			}
+		}
+		reason := block(i, proposal, data)
+		if reason != nil {
+			return reason
 		}
 	}
 	atomic.StoreUint64(&node.committed, uint64(highest+1))
