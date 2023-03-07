@@ -40,6 +40,9 @@ type node struct {
 	repairOutbound []Connection
 	repairLock     sync.Mutex
 	repairIndex    int
+
+	removeLists []map[uint64]uint64
+	removeLocks []*sync.Mutex
 }
 
 const INFO = false
@@ -48,8 +51,12 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	var compare = &Comparator{ComparingProposals}
 	var size = uint32((65536 / len(pipes)) * len(pipes))
 	var queues = make([]*guc.PriorityBlockingQueue, len(pipes))
+	var removeLists = make([]map[uint64]uint64, len(pipes))
+	var removeLocks = make([]*sync.Mutex, len(pipes))
 	for i := range queues {
 		queues[i] = guc.NewPriorityBlockingQueueWithComparator(compare)
+		removeLists[i] = make(map[uint64]uint64)
+		removeLocks[i] = &sync.Mutex{}
 	}
 	var others []string
 	for _, other := range addresses {
@@ -72,7 +79,8 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 		uint64(0), int64(-1), sync.Mutex{},
 		spreadersInbound, spreadersOutbound,
 		Multicaster(spreadersOutbound...), sync.Mutex{},
-		repairInbound, repairOutbound, sync.Mutex{}, 0,
+		repairInbound, repairOutbound, sync.Mutex{},
+		0, removeLists, removeLocks,
 	}, nil
 }
 
@@ -111,9 +119,23 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	return id, message, nil
 }
 
-func queueForId(id uint64) uint64 {
-	//return id>>32
-	return id
+func (node *node) enqueue(id uint64, data []byte) {
+	var index = id % uint64(len(node.pipes))
+	//var index = id >>32%uint64(len(node.queues))
+	var lock = node.removeLocks[index]
+	var list = node.removeLists[index]
+	lock.Lock()
+	if list[id] == id {
+		delete(list, id)
+		lock.Unlock()
+		return
+	}
+	lock.Unlock()
+	node.proposeLock.Lock()
+	node.messages[id] = data
+	node.proposeLock.Unlock()
+	node.queues[index].Offer(Identifier{id})
+	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
 func (node *node) Propose(id uint64, data []byte) error {
@@ -128,10 +150,7 @@ func (node *node) Propose(id uint64, data []byte) error {
 		if reason != nil {
 			panic(reason)
 		}
-		node.proposeLock.Lock()
-		node.messages[id] = data
-		node.proposeLock.Unlock()
-		node.queues[queueForId(id)%uint64(len(node.queues))].Offer(Identifier{id})
+		node.enqueue(id, data)
 	}()
 	return nil
 }
@@ -158,10 +177,7 @@ func (node *node) Run() error {
 				if reason != nil {
 					panic(reason)
 				}
-				node.proposeLock.Lock()
-				node.messages[id] = data
-				node.proposeLock.Unlock()
-				node.queues[queueForId(id)%uint64(len(node.queues))].Offer(Identifier{id})
+				node.enqueue(id, data)
 			}
 		}(inbound)
 	}
@@ -277,8 +293,10 @@ func (node *node) Run() error {
 					if message < UNKNOWN {
 						println("Going to remove: ", message)
 						if !queue.Remove(Identifier{message}) {
-							//eventually store this message waiting for someone to try to add it to the queue.
-							panic("Down the road this will be unrecoverable!")
+							var lock = node.removeLocks[index]
+							lock.Lock()
+							node.removeLists[index][message] = message
+							lock.Unlock()
 						}
 					}
 
