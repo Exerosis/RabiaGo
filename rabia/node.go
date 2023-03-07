@@ -177,7 +177,8 @@ func (node *node) Run() error {
 				}
 				var highest = atomic.LoadInt64(&node.highest)
 				var index = binary.LittleEndian.Uint64(buffer)
-				if int64(index) <= highest {
+				//improve this and also what if we have the id but the not message? (possible?)
+				if int64(index) <= highest && node.log.Logs[index%uint64(node.log.Size)] != UNKNOWN {
 					var id = node.log.Logs[index%uint64(node.log.Size)]
 					node.proposeLock.RLock()
 					var message = node.messages[id]
@@ -258,12 +259,32 @@ func (node *node) Run() error {
 					if last != SKIP {
 						queue.Offer(Identifier{last})
 					}
+					if message == UNKNOWN {
+						for {
+							id, repaired, err := node.Repair(current)
+							if err != nil {
+								return err
+							}
+							if id != NONE {
+								node.proposeLock.Lock()
+								node.messages[id] = repaired
+								node.proposeLock.Unlock()
+								message = id
+								break
+							}
+						}
+					}
 					if message < UNKNOWN {
+						println("Going to remove: ", message)
 						if queue.Remove(Identifier{message}) {
 							println("Removed one!")
 						}
 					}
+
 				}
+
+				//Message cannot be unknown at this point.
+
 				//if message != math.MaxUint64 {
 				//	fmt.Printf("[Pipe-%d] %d\n", index, message)
 				//}
