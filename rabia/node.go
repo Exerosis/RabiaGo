@@ -258,8 +258,7 @@ func (node *node) Run() error {
 					if last != SKIP {
 						queue.Offer(Identifier{last})
 					}
-					if message != UNKNOWN {
-						println("removing ig?")
+					if message < UNKNOWN {
 						if queue.Remove(Identifier{message}) {
 							println("Removed one!")
 						}
