@@ -2,6 +2,7 @@ package rabia
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/better-concurrent/guc"
 	"go.uber.org/multierr"
@@ -12,6 +13,7 @@ import (
 type Node interface {
 	Size() uint32
 	Propose(id uint64, data []byte) error
+	ProposeEach(id uint64, data [][]byte) error
 	Run() error
 	Repair(index uint64) (uint64, []byte, error)
 	Consume(block func(uint64, uint64, []byte) error) error
@@ -151,6 +153,50 @@ func (node *node) Propose(id uint64, data []byte) error {
 			panic(reason)
 		}
 		node.enqueue(id, data)
+	}()
+	return nil
+}
+
+func (node *node) ProposeEach(id uint64, data [][]byte) error {
+	if len(data) != len(node.addresses) {
+		return errors.New("not enough data segements to split")
+	}
+	header := make([]byte, 12)
+	binary.LittleEndian.PutUint64(header[0:], id)
+	binary.LittleEndian.PutUint32(header[8:], uint32(len(data)))
+	go func() {
+		var group sync.WaitGroup
+		var lock sync.Mutex
+		var reasons error
+
+		var currentNodeIndex int
+		for i, addr := range node.addresses {
+			if addr == node.address {
+				currentNodeIndex = i
+				break
+			}
+		}
+		group.Add(len(node.spreadersOutbound))
+		node.spreadLock.Lock()
+		for i, connection := range node.spreadersOutbound {
+			dataIndex := i
+			if i >= currentNodeIndex {
+				dataIndex++ // Skip the current node's data
+			}
+			go func(connection Connection, data []byte) {
+				reason := connection.Write(append(header, data...))
+				if reason != nil {
+					lock.Lock()
+					reasons = multierr.Append(reasons, reason)
+					lock.Unlock()
+				} else {
+					group.Done()
+				}
+			}(connection, data[dataIndex])
+		}
+		group.Wait()
+		node.spreadLock.Unlock()
+		node.enqueue(id, data[currentNodeIndex])
 	}()
 	return nil
 }
