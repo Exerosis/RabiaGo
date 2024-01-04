@@ -316,11 +316,9 @@ func (node *node) Run() error {
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				//if message == SKIP {
-				//	//println("Inconsistent")
-				//} else {
-				//	println("happy")
-				//}
+				if message == SKIP {
+					println("Inconsistent")
+				}
 				if message != last {
 					if last != SKIP {
 						queue.Offer(Identifier{last})
@@ -341,7 +339,7 @@ func (node *node) Run() error {
 						}
 					}
 					if message < UNKNOWN {
-						println("Going to remove: ", message)
+						//println("Going to remove: ", message)
 						if !queue.Remove(Identifier{message}) {
 							var lock = node.removeLocks[index]
 							lock.Lock()
