@@ -21,8 +21,8 @@ func NewBlockingMap[K comparable, V any]() *BlockingMap[K, V] {
 func (m *BlockingMap[K, V]) Set(key K, value V) {
 	m.cond.L.Lock()
 	m.data[key] = value
-	m.cond.L.Unlock()
 	m.cond.Broadcast()
+	m.cond.L.Unlock()
 }
 
 func (m *BlockingMap[K, V]) Get(key K) (V, bool) {
