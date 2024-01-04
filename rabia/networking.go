@@ -113,8 +113,6 @@ func (p *pipe) Read(buffer []byte) error {
 	return nil
 }
 func (p *pipe) Write(buffer []byte) error {
-	println("Writing")
-	defer println("Wrote")
 	for start := 0; start != len(buffer); {
 		amount, reason := p.BufferedPipe.Write(buffer[start:])
 		if reason != nil {
