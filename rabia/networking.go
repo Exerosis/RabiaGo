@@ -235,6 +235,7 @@ func GroupSet(address string, port uint16, addresses ...string) ([]Connection, [
 		group.Done()
 	}()
 
+	println("starting to accept")
 	var inbound = make([]Connection, len(addresses))
 	for i := range addresses {
 		client, reason := server.Accept()
