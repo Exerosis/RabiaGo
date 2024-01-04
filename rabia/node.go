@@ -316,9 +316,9 @@ func (node *node) Run() error {
 				last = next.(Identifier).Value
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				//if message == SKIP {
-				//	println("Inconsistent")
-				//}
+				if message == SKIP {
+					println("Inconsistent")
+				}
 				if message != last {
 					if last != SKIP {
 						queue.Offer(Identifier{last})
