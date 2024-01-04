@@ -66,17 +66,11 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 			others = append(others, other)
 		}
 	}
-	println("going to connect")
-	for _, address := range addresses {
-		println(address)
-	}
 	spreadersInbound, spreadersOutbound, reason := GroupSet(address, 25565, others...)
-	println("connected spreadres")
 	if reason != nil {
 		return nil, reason
 	}
 	repairInbound, repairOutbound, reason := GroupSet(address, 2001, others...)
-	println("connected reapir")
 	if reason != nil {
 		return nil, reason
 	}

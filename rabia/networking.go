@@ -226,7 +226,6 @@ func GroupSet(address string, port uint16, addresses ...string) ([]Connection, [
 			for {
 				client, reason := dialer.Dial("tcp", remote)
 				if reason == nil {
-					println("got one connection")
 					outbound[i] = connection{client}
 					break
 				}
@@ -235,11 +234,9 @@ func GroupSet(address string, port uint16, addresses ...string) ([]Connection, [
 		group.Done()
 	}()
 
-	println("starting to accept")
 	var inbound = make([]Connection, len(addresses))
 	for i := range addresses {
 		client, reason := server.Accept()
-		println("accepted one connection!")
 		if reason != nil {
 			return nil, nil, reason
 		}
