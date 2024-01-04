@@ -225,6 +225,7 @@ func GroupSet(address string, port uint16, addresses ...string) ([]Connection, [
 			var remote = fmt.Sprintf("%s:%d", other, port)
 			for {
 				client, reason := dialer.Dial("tcp", remote)
+				println("got one connection")
 				if reason == nil {
 					outbound[i] = connection{client}
 					break
@@ -237,6 +238,7 @@ func GroupSet(address string, port uint16, addresses ...string) ([]Connection, [
 	var inbound = make([]Connection, len(addresses))
 	for i := range addresses {
 		client, reason := server.Accept()
+		println("accepted one connection!")
 		if reason != nil {
 			return nil, nil, reason
 		}
