@@ -11,10 +11,11 @@ type BlockingMap[K comparable, V any] struct {
 }
 
 func NewBlockingMap[K comparable, V any]() *BlockingMap[K, V] {
+	var mutex = &sync.Mutex{}
 	bm := &BlockingMap[K, V]{
 		data: make(map[K]V),
+		cond: sync.NewCond(mutex),
 	}
-	bm.cond = sync.NewCond(&bm.mutex)
 	return bm
 }
 
