@@ -163,7 +163,7 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 	}
 	header := make([]byte, 12)
 	binary.LittleEndian.PutUint64(header[0:], id)
-	binary.LittleEndian.PutUint32(header[8:], uint32(len(data)))
+	binary.LittleEndian.PutUint32(header[8:], uint32(len(data[0])))
 	go func() {
 		var group sync.WaitGroup
 		var lock sync.Mutex
