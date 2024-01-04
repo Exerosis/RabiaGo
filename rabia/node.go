@@ -299,7 +299,7 @@ func (node *node) Run() error {
 				//	}
 				//}
 				//three++
-				time.Sleep(50 * time.Microsecond)
+				time.Sleep(5 * time.Microsecond)
 				var next = queue.Take()
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
