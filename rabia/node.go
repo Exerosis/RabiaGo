@@ -8,7 +8,6 @@ import (
 	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 type Node interface {
@@ -299,7 +298,7 @@ func (node *node) Run() error {
 				//	}
 				//}
 				//three++
-				time.Sleep(20 * time.Microsecond)
+				//time.Sleep(20 * time.Microsecond)
 				var next = queue.Take()
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
