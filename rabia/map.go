@@ -25,6 +25,13 @@ func (m *BlockingMap[K, V]) Set(key K, value V) {
 	m.cond.L.Unlock()
 }
 
+func (m *BlockingMap[K, V]) Delete(key K) {
+	m.cond.L.Lock()
+	delete(m.data, key)
+	m.cond.Broadcast()
+	m.cond.L.Unlock()
+}
+
 func (m *BlockingMap[K, V]) Get(key K) (V, bool) {
 	m.cond.L.Lock()
 	defer m.cond.L.Unlock()
