@@ -305,7 +305,7 @@ func (node *node) Run() error {
 				println("About to take")
 				var next = queue.Take()
 				println("Took")
-				time.Sleep(50 * time.Nanosecond)
+				time.Sleep(1 * time.Second)
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
 				//	time.Sleep(1000 * time.Millisecond)
