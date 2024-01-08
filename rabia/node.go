@@ -291,6 +291,7 @@ func (node *node) Run() error {
 			info("Connected!\n")
 			//var three = 0
 			var last uint64
+			time.Sleep(50 * time.Second)
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				//if three == 4 {
 				//	time.Sleep(60 * time.Second)
