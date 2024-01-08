@@ -151,6 +151,7 @@ var prop uint32 = 0
 func (node *node) Propose(id uint64, data []byte) error {
 	atomic.AddUint32(&prop, 1)
 	println("Propped: ", atomic.LoadUint32(&prop))
+	println("Length: ", len(node.spreadersOutbound))
 	header := make([]byte, 12)
 	binary.LittleEndian.PutUint64(header[0:], id)
 	binary.LittleEndian.PutUint32(header[8:], uint32(len(data)))
