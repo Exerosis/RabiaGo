@@ -345,13 +345,12 @@ func (node *node) Run() error {
 						}
 					}
 					if message < UNKNOWN {
-						panic("Going to remove: ")
-						//if !queue.Remove(Identifier{message}) {
-						//	var lock = node.removeLocks[index]
-						//	lock.Lock()
-						//	node.removeLists[index][message] = message
-						//	lock.Unlock()
-						//}
+						if !queue.Remove(message) {
+							var lock = node.removeLocks[index]
+							lock.Lock()
+							node.removeLists[index][message] = message
+							lock.Unlock()
+						}
 					}
 
 				}
