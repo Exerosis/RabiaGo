@@ -301,6 +301,7 @@ func (node *node) Run() error {
 				//}
 				//three++
 				//time.Sleep(20 * time.Microsecond)
+				println(queue.Size())
 				println("About to take")
 				var next = queue.Take()
 				println("Took")
