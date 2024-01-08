@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/better-concurrent/guc"
 	"go.uber.org/multierr"
 	"math"
 	"sync"
@@ -27,7 +26,7 @@ type node struct {
 	addresses []string
 	address   string
 
-	queues      []*guc.PriorityBlockingQueue
+	queues      []Queue[uint64]
 	messages    map[uint64][]byte
 	proposeLock sync.RWMutex
 
@@ -52,13 +51,15 @@ type node struct {
 const INFO = false
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
-	var compare = &Comparator{ComparingProposals}
+	//var compare = &Comparator{ComparingProposals}
 	var size = uint32((65536 / len(pipes)) * len(pipes))
-	var queues = make([]*guc.PriorityBlockingQueue, len(pipes))
+	var queues = make([]Queue[uint64], len(pipes))
 	var removeLists = make([]map[uint64]uint64, len(pipes))
 	var removeLocks = make([]*sync.Mutex, len(pipes))
 	for i := range queues {
-		queues[i] = guc.NewPriorityBlockingQueueWithComparator(compare)
+		queues[i] = NewPriorityBlockingQueue[uint64](65536, time.Hour, func(a uint64, b uint64) bool {
+			return a > b
+		})
 		removeLists[i] = make(map[uint64]uint64)
 		removeLocks[i] = &sync.Mutex{}
 	}
@@ -138,7 +139,8 @@ func (node *node) enqueue(id uint64, data []byte) {
 	node.proposeLock.Lock()
 	node.messages[id] = data
 	node.proposeLock.Unlock()
-	node.queues[index].Offer(Identifier{id})
+	//node.queues[index].Offer(Identifier{id})
+	node.queues[index].Offer(id)
 	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
@@ -268,7 +270,7 @@ func (node *node) Run() error {
 	time.Sleep(10 * time.Second)
 	//var mark = time.Now().UnixNano()
 	for index, pipe := range node.pipes {
-		go func(index int, pipe uint16, queue *guc.PriorityBlockingQueue) {
+		go func(index int, pipe uint16, queue Queue[uint64]) {
 			defer group.Done()
 			var info = func(format string, a ...interface{}) {
 				if INFO {
@@ -303,7 +305,7 @@ func (node *node) Run() error {
 				//}
 				//three++
 				//time.Sleep(20 * time.Microsecond)
-				var next = queue.Take()
+				next, _ := queue.Poll()
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
 				//	time.Sleep(1000 * time.Millisecond)
@@ -316,7 +318,7 @@ func (node *node) Run() error {
 				//} else {
 				//	//println("didn't noop")
 				//}
-				last = next.(Identifier).Value
+				last = next
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
 				if message == SKIP {
@@ -325,7 +327,7 @@ func (node *node) Run() error {
 				if message != last {
 					if last != SKIP {
 						println("Offering")
-						queue.Offer(Identifier{last})
+						queue.Offer(last)
 					}
 					if message == UNKNOWN {
 						for {
@@ -343,13 +345,13 @@ func (node *node) Run() error {
 						}
 					}
 					if message < UNKNOWN {
-						println("Going to remove: ", message)
-						if !queue.Remove(Identifier{message}) {
-							var lock = node.removeLocks[index]
-							lock.Lock()
-							node.removeLists[index][message] = message
-							lock.Unlock()
-						}
+						panic("Going to remove: ")
+						//if !queue.Remove(Identifier{message}) {
+						//	var lock = node.removeLocks[index]
+						//	lock.Lock()
+						//	node.removeLists[index][message] = message
+						//	lock.Unlock()
+						//}
 					}
 
 				}

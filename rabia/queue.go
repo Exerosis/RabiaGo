@@ -59,12 +59,12 @@ func (queue *priority[T]) Offer(item T) bool {
 func (queue *priority[T]) Poll() (T, bool) {
 	queue.lock.Lock()
 	defer queue.lock.Unlock()
-	var timer *time.Timer = nil
+	//var timer *time.Timer = nil
 	var size = queue.size
 	if size == 0 {
-		timer = time.AfterFunc(queue.timeout, queue.cond.Signal)
+		//timer = time.AfterFunc(queue.timeout, queue.cond.Signal)
 		queue.cond.Wait()
-		timer.Stop()
+		//timer.Stop()
 		if queue.size == 0 {
 			var nothing T
 			return nothing, false
