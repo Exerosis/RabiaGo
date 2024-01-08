@@ -123,7 +123,11 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	return id, message, nil
 }
 
+var test = 0
+
 func (node *node) enqueue(id uint64, data []byte) {
+	test++
+	println("Enqueue: ", test)
 	var index = id % uint64(len(node.pipes))
 	//var index = id >>32%uint64(len(node.queues))
 	var lock = node.removeLocks[index]
@@ -344,7 +348,7 @@ func (node *node) Run() error {
 						}
 					}
 					if message < UNKNOWN {
-						//println("Going to remove: ", message)
+						println("Going to remove: ", message)
 						if !queue.Remove(Identifier{message}) {
 							var lock = node.removeLocks[index]
 							lock.Lock()
