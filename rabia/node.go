@@ -143,7 +143,6 @@ func (node *node) enqueue(id uint64, data []byte) {
 	node.messages[id] = data
 	node.proposeLock.Unlock()
 	node.queues[index].Offer(Identifier{id})
-	println("Length: ", node.queues[index].Size())
 	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
@@ -163,8 +162,9 @@ func (node *node) Propose(id uint64, data []byte) error {
 		if reason != nil {
 			panic(reason)
 		}
-		node.enqueue(id, data)
+
 	}()
+	node.enqueue(id, data)
 	return nil
 }
 
