@@ -123,11 +123,11 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	return id, message, nil
 }
 
-var test = 0
+var test uint32 = 0
 
 func (node *node) enqueue(id uint64, data []byte) {
-	test++
-	//println("Enqueue: ", test)
+	atomic.AddUint32(&test, 1)
+	println("Enqueue: ", atomic.LoadUint32(&test))
 	var index = id % uint64(len(node.pipes))
 	//var index = id >>32%uint64(len(node.queues))
 	var lock = node.removeLocks[index]
@@ -143,6 +143,7 @@ func (node *node) enqueue(id uint64, data []byte) {
 	node.messages[id] = data
 	node.proposeLock.Unlock()
 	node.queues[index].Offer(Identifier{id})
+	println("Length: ", node.queues[index].Size())
 	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
@@ -272,6 +273,7 @@ func (node *node) Run() error {
 		}(inbound)
 	}
 
+	time.Sleep(time.Hour)
 	//var mark = time.Now().UnixNano()
 	for index, pipe := range node.pipes {
 		go func(index int, pipe uint16, queue *guc.PriorityBlockingQueue) {
