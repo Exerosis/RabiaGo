@@ -357,7 +357,7 @@ func (node *node) Run() error {
 				//Message cannot be unknown at this point.
 
 				if message != math.MaxUint64 {
-					//fmt.Printf("[Pipe-%d] %d\n", index, message)
+					fmt.Printf("[Pipe-%d] %d\n", index, message)
 				}
 				log.Logs[current%uint64(log.Size)] = message
 				var value = atomic.LoadInt64(&node.highest)
