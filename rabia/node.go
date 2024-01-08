@@ -229,13 +229,13 @@ func (node *node) Run() error {
 				if reason != nil {
 					panic(reason)
 				}
-				var _ = binary.LittleEndian.Uint64(header[0:])
+				var id = binary.LittleEndian.Uint64(header[0:])
 				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
 				reason = inbound.Read(data)
 				if reason != nil {
 					panic(reason)
 				}
-				//node.enqueue(id, data)
+				node.enqueue(id, data)
 			}
 		}(inbound)
 	}
