@@ -304,9 +304,7 @@ func (node *node) Run() error {
 				//three++
 				//time.Sleep(20 * time.Microsecond)
 				println(queue.Size())
-				println("About to take")
 				var next = queue.Take()
-				println("Took")
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
 				//	time.Sleep(1000 * time.Millisecond)
@@ -360,7 +358,7 @@ func (node *node) Run() error {
 				//Message cannot be unknown at this point.
 
 				if message != math.MaxUint64 {
-					fmt.Printf("[Pipe-%d] %d\n", index, message)
+					//fmt.Printf("[Pipe-%d] %d\n", index, message)
 				}
 				log.Logs[current%uint64(log.Size)] = message
 				var value = atomic.LoadInt64(&node.highest)
