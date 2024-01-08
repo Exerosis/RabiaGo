@@ -127,7 +127,7 @@ var test = 0
 
 func (node *node) enqueue(id uint64, data []byte) {
 	test++
-	println("Enqueue: ", test)
+	//println("Enqueue: ", test)
 	var index = id % uint64(len(node.pipes))
 	//var index = id >>32%uint64(len(node.queues))
 	var lock = node.removeLocks[index]
@@ -146,7 +146,11 @@ func (node *node) enqueue(id uint64, data []byte) {
 	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
+var prop = 0
+
 func (node *node) Propose(id uint64, data []byte) error {
+	prop++
+	println("Propped: ", prop)
 	header := make([]byte, 12)
 	binary.LittleEndian.PutUint64(header[0:], id)
 	binary.LittleEndian.PutUint32(header[8:], uint32(len(data)))
