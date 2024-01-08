@@ -3,11 +3,11 @@ package rabia
 import (
 	"sort"
 	"sync"
-	"time"
 )
 
 type Queue[T any] interface {
 	Offer(item T) bool
+	Remove(item T) bool
 	Poll() (T, bool)
 	Size() int
 }
@@ -15,40 +15,35 @@ type Queue[T any] interface {
 type priority[T any] struct {
 	slice   []T
 	size    int
-	compare func(T, T) bool
-	lock    sync.Mutex
+	compare func(T, T) int
 	cond    *sync.Cond
-	timer   *time.Timer
-	timeout time.Duration
 }
 
 func NewPriorityBlockingQueue[T any](
 	capacity int,
-	timeout time.Duration,
-	compare func(T, T) bool,
+	compare func(T, T) int,
 ) Queue[T] {
 	queue := &priority[T]{
 		slice:   make([]T, capacity),
 		compare: compare,
-		timeout: timeout,
+		cond:    sync.NewCond(&sync.Mutex{}),
 	}
-	queue.cond = sync.NewCond(&queue.lock)
 	return queue
 }
 
 func (queue *priority[T]) Offer(item T) bool {
-	queue.lock.Lock()
-	defer queue.lock.Unlock()
+	queue.cond.L.Lock()
+	defer queue.cond.L.Unlock()
 
 	var capacity = cap(queue.slice)
 	if queue.size == capacity {
-		queue.slice = queue.slice[: len(queue.slice)+1 : capacity*2]
+		panic("overflow not implemented")
 	}
 	index := sort.Search(queue.size, func(i int) bool {
-		return queue.compare(queue.slice[i], item)
+		return queue.compare(queue.slice[i], item) >= 0
 	})
-	if index < queue.size {
-		copy(queue.slice[index:], queue.slice[index+1:queue.size+1])
+	if index != -1 {
+		copy(queue.slice[index+1:], queue.slice[index:queue.size])
 	}
 	queue.slice[index] = item
 	queue.size++
@@ -57,26 +52,31 @@ func (queue *priority[T]) Offer(item T) bool {
 }
 
 func (queue *priority[T]) Poll() (T, bool) {
-	queue.lock.Lock()
-	defer queue.lock.Unlock()
-	//var timer *time.Timer = nil
-	var size = queue.size
-	if size == 0 {
-		//timer = time.AfterFunc(queue.timeout, queue.cond.Signal)
+	queue.cond.L.Lock()
+	defer queue.cond.L.Unlock()
+
+	if queue.size == 0 {
 		queue.cond.Wait()
-		//timer.Stop()
-		if queue.size == 0 {
-			var nothing T
-			return nothing, false
-		}
 	}
 	queue.size--
-	item := queue.slice[queue.size]
-	return item, true
+	return queue.slice[queue.size], true
+}
+
+func (queue *priority[T]) Remove(item T) bool {
+	queue.cond.L.Lock()
+	defer queue.cond.L.Unlock()
+	for i := 0; i < queue.size; i++ {
+		if queue.compare(queue.slice[i], item) == 0 {
+			copy(queue.slice[i:], queue.slice[i+1:queue.size])
+			queue.size--
+			return true
+		}
+	}
+	return false
 }
 
 func (queue *priority[T]) Size() int {
-	queue.lock.Lock()
-	defer queue.lock.Unlock()
+	queue.cond.L.Lock()
+	defer queue.cond.L.Unlock()
 	return queue.size
 }
