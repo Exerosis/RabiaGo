@@ -345,6 +345,7 @@ func (node *node) Run() error {
 						}
 					}
 					if message < UNKNOWN {
+						println("Removing")
 						if !queue.Remove(message) {
 							var lock = node.removeLocks[index]
 							lock.Lock()
