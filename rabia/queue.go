@@ -34,7 +34,6 @@ func NewPriorityBlockingQueue[T any](
 func (queue *priority[T]) Offer(item T) bool {
 	queue.cond.L.Lock()
 	defer queue.cond.L.Unlock()
-	print("Current size: ", queue.size)
 	var capacity = cap(queue.slice)
 	if queue.size == capacity {
 		panic("overflow not implemented")
