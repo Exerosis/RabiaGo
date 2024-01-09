@@ -92,7 +92,7 @@ outer:
 		}
 		for {
 			if phase > 1 {
-				println("Phase: ", phase)
+				panic("Got to second phase")
 			}
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
