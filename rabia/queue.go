@@ -35,7 +35,7 @@ func (queue *priority[T]) Offer(item T) bool {
 	queue.cond.L.Lock()
 	defer queue.cond.L.Unlock()
 	if queue.size > 1 {
-		println("Queue: ", queue.size)
+		//println("Queue: ", queue.size)
 	}
 	var capacity = cap(queue.slice)
 	if queue.size == capacity {

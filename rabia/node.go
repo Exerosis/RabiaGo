@@ -321,7 +321,7 @@ func (node *node) Run() error {
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
 				if message == SKIP {
-					println("Inconsistent")
+					//println("Inconsistent")
 				}
 				if message != last {
 					if last != SKIP {

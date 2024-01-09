@@ -91,6 +91,9 @@ outer:
 			state = phase<<2 | 0
 		}
 		for {
+			if phase > 1 {
+				println("Phase: ", phase)
+			}
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
