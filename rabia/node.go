@@ -95,10 +95,10 @@ func (node *node) Size() uint32 {
 func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	node.repairLock.Lock()
 	defer node.repairLock.Unlock()
-	println("Trying to repair: ", index)
+	//println("Trying to repair: ", index)
 	var client = node.repairOutbound[node.repairIndex%len(node.repairOutbound)]
 	node.repairIndex++
-	println("repairing with: ", client.(connection).Conn.RemoteAddr().String())
+	//println("repairing with: ", client.(connection).Conn.RemoteAddr().String())
 	//node.repairIndex++
 	var buffer = make([]byte, 8)
 	binary.LittleEndian.PutUint64(buffer, index)
@@ -113,8 +113,6 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 	}
 	var id = binary.LittleEndian.Uint64(header[0:])
 	var amount = binary.LittleEndian.Uint32(header[8:])
-	println("id: ", id)
-	println("amount: ", amount)
 	var message = make([]byte, amount)
 	reason = client.Read(message)
 	if reason != nil {
@@ -343,7 +341,7 @@ func (node *node) Run() error {
 						}
 					}
 					if message < UNKNOWN {
-						println("Removing")
+						//println("Removing")
 						if !queue.Remove(message) {
 							var lock = node.removeLocks[index]
 							lock.Lock()
