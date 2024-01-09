@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"go.uber.org/multierr"
-	"math"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -48,7 +47,7 @@ type node struct {
 	removeLocks []*sync.Mutex
 }
 
-const INFO = true
+const INFO = false
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	//var compare = &Comparator{ComparingProposals}
@@ -358,9 +357,9 @@ func (node *node) Run() error {
 
 				//Message cannot be unknown at this point.
 
-				if message != math.MaxUint64 {
-					fmt.Printf("[Pipe-%d] %d\n", index, message)
-				}
+				//if message != math.MaxUint64 {/**/
+				//	fmt.Printf("[Pipe-%d] %d\n", index, message)
+				//}
 				log.Logs[current%uint64(log.Size)] = message
 				var value = atomic.LoadInt64(&node.highest)
 				for value < int64(current) && !atomic.CompareAndSwapInt64(&node.highest, value, int64(current)) {
