@@ -325,7 +325,6 @@ func (node *node) Run() error {
 				}
 				if message != last {
 					if last != SKIP {
-						println("Offering")
 						queue.Offer(last)
 					}
 					if message == UNKNOWN {
