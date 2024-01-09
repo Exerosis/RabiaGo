@@ -295,6 +295,12 @@ func (node *node) Run() error {
 			info("Connected!\n")
 			//var three = 0
 			var last uint64
+			go func() {
+				for {
+					time.Sleep(time.Second)
+					println("Remaining: ", queue.Size())
+				}
+			}()
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				//if three == 4 {
 				//	time.Sleep(60 * time.Second)
@@ -305,7 +311,6 @@ func (node *node) Run() error {
 				//}
 				//three++
 				//time.Sleep(20 * time.Microsecond)
-				println(queue.Size())
 				next, _ := queue.Poll()
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
