@@ -93,6 +93,8 @@ func (log Log) SMR(
 				}
 			}
 		}
+		println("Count: ", count)
+		println("Largest: ", largest)
 		log.Indices[current] = 0
 
 		phase = 0
