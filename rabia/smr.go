@@ -28,9 +28,9 @@ func isOld(a uint16, b uint16, half uint16) bool {
 }
 
 func (log Log) SMR(
-	proposes Connection,
-	states Connection,
-	votes Connection,
+	proposes *Dmulticaster,
+	states *Dmulticaster,
+	votes *Dmulticaster,
 	messages func() (uint16, uint64, error),
 	commit func(uint16, uint64) error,
 	info func(string, ...interface{}),
@@ -135,6 +135,7 @@ func (log Log) SMR(
 					println("Discarding old")
 					continue
 				}
+				states.Index++
 				var op = buffer[2] & 3
 				var total = log.StatesZero[depth<<8|round] + log.StatesOne[depth<<8|round]
 				info("Got State (%d/%d): %d(%d) - %d\n", total+1, log.Majority, depth, round, op)
@@ -174,6 +175,7 @@ func (log Log) SMR(
 					println("Discarding old vote")
 					continue
 				}
+				votes.Index++
 				var op = buffer[2] & 3
 				var total = log.VotesZero[depth<<8|round] + log.VotesOne[depth<<8|round] + log.VotesLost[depth<<8|round]
 				info("Got Vote (%d/%d): %d(%d) - %d\n", total+1, log.Majority, depth, round, op)

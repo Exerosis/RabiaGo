@@ -18,14 +18,14 @@ type Connection interface {
 	Close() error
 }
 
-type multicaster struct {
+type Dmulticaster struct {
 	connections []Connection
-	index       int
+	Index       int
 	closed      atomic.Bool
 	name        *string
 }
 
-func (multicaster *multicaster) Write(buffer []byte) error {
+func (multicaster *Dmulticaster) Write(buffer []byte) error {
 	var group sync.WaitGroup
 	var lock sync.Mutex
 	var reasons error
@@ -51,15 +51,16 @@ func (multicaster *multicaster) Write(buffer []byte) error {
 	group.Wait()
 	return reasons
 }
-func (multicaster *multicaster) Read(buffer []byte) error {
-	connection := multicaster.connections[multicaster.index%len(multicaster.connections)]
+func (multicaster *Dmulticaster) Read(buffer []byte) error {
+	connection := multicaster.connections[multicaster.Index%len(multicaster.connections)]
 	if multicaster.name != nil {
-		println(*multicaster.name, " Reading: ", multicaster.index%len(multicaster.connections))
+		println(*multicaster.name, " Reading: ", multicaster.Index%len(multicaster.connections))
+	} else {
+		multicaster.Index++
 	}
-	multicaster.index++
 	return connection.Read(buffer)
 }
-func (multicaster *multicaster) Close() error {
+func (multicaster *Dmulticaster) Close() error {
 	var current = multicaster.closed.Load()
 	for !current && multicaster.closed.CompareAndSwap(current, true) {
 		current = multicaster.closed.Load()
@@ -174,10 +175,10 @@ func control(network, address string, conn syscall.RawConn) error {
 }
 
 func Multicaster(connections ...Connection) Connection {
-	return &multicaster{connections: connections}
+	return &Dmulticaster{connections: connections}
 }
-func FixedMulticaster(index int, name string, connections ...Connection) Connection {
-	return &multicaster{connections: connections, index: index, name: &name}
+func FixedMulticaster(index int, name string, connections ...Connection) *Dmulticaster {
+	return &Dmulticaster{connections: connections, Index: index, name: &name}
 }
 func Group(address string, port uint16, addresses ...string) ([]Connection, error) {
 	var listener = net.ListenConfig{Control: control}
