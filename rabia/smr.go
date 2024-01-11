@@ -191,7 +191,7 @@ func (log Log) SMR(
 			log.VotesLost[height] = 0
 
 			phase++
-			if one >= uint8(log.Majority) {
+			if one >= uint8(log.F+1) {
 				reason = commit(current, proposed)
 				if reason != nil {
 					return reason
@@ -199,7 +199,7 @@ func (log Log) SMR(
 				state = phase<<2 | 1
 				goto cleanup
 			}
-			if zero >= uint8(log.Majority) {
+			if zero >= uint8(log.F+1) {
 				reason = commit(current, SKIP)
 				if reason != nil {
 					return reason
