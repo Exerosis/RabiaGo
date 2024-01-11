@@ -40,6 +40,7 @@ func (log Log) SMR(
 	var shift = uint32(math.Floor(math.Log2(float64(log.Majority)))) + 1
 
 	var count = uint16(0)
+	var highest = uint16(0)
 
 	var phase = uint8(0)
 	var state uint8
@@ -73,21 +74,21 @@ func (log Log) SMR(
 			log.Indices[depth] = index + 1
 		}
 
-		count = 0
+		highest = 0
 		for i := uint16(0); i < log.N-log.F; i++ {
 			var proposal = log.Proposals[current<<shift|i]
 			if proposal == proposed {
-				count++
+				highest++
 			} else {
-				var next uint16 = 0
+				count = 0
 				for j := uint16(0); j < i; j++ {
 					if log.Proposals[current<<shift|j] == proposal {
-						next++
+						count++
 					}
 				}
-				if next > count {
+				if count > highest {
 					proposed = proposal
-					count = next
+					highest = count
 				}
 			}
 		}
