@@ -331,7 +331,7 @@ func (node *node) Run() error {
 					if message == SKIP {
 						println("had to skip")
 						println(queue.String())
-						time.Sleep(2 * time.Second)
+						//time.Sleep(100 * time.Second)
 					}
 					if message < UNKNOWN {
 						//println("Removing")
