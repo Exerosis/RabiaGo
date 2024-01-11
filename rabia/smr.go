@@ -80,7 +80,7 @@ func (log Log) SMR(
 			if proposal == proposed {
 				highest++
 			} else {
-				count = 0
+				count = 1
 				for j := uint16(0); j < i; j++ {
 					if log.Proposals[current<<shift|j] == proposal {
 						count++
