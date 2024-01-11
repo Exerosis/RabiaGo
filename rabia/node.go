@@ -239,8 +239,8 @@ func (node *node) Run() error {
 				if reason != nil {
 					panic(reason)
 				}
-				var highest = atomic.LoadInt64(&node.highest)
 				var index = binary.LittleEndian.Uint64(buffer)
+				var highest = atomic.LoadInt64(&node.highest)
 				//improve this and also what if we have the id but the not message? (possible?)
 				if int64(index) <= highest && node.log.Logs[index%uint64(node.log.Size)] != UNKNOWN {
 					var id = node.log.Logs[index%uint64(node.log.Size)]
@@ -426,6 +426,8 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 				id, repaired, _ := node.Repair(i)
 				if id != 0 {
 					if id != proposal {
+						println("ID: ", id)
+						println("Proposal: ", proposal)
 						panic("SMR HAS FAILED CATASTROPHICALLY!")
 					}
 					node.proposeLock.Lock()
