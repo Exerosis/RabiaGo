@@ -419,10 +419,10 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 					if id != proposal {
 						println("ID: ", id)
 						println("Proposal: ", proposal)
-						panic("SMR HAS FAILED CATASTROPHICALLY!")
+						println("SMR HAS FAILED CATASTROPHICALLY!")
 					}
 					node.proposeLock.Lock()
-					node.messages[id] = repaired
+					node.messages[id] = make([]byte, 0)
 					node.proposeLock.Unlock()
 					data = repaired
 					break
