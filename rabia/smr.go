@@ -40,7 +40,6 @@ func (log Log) SMR(
 	var shift = uint32(math.Floor(math.Log2(float64(log.Majority)))) + 1
 
 	var count = uint16(0)
-	var largest = uint16(0)
 
 	var phase = uint8(0)
 	var state uint8
@@ -75,15 +74,11 @@ func (log Log) SMR(
 		}
 
 		count = 0
-		largest = 0
 		for i := uint16(0); i < log.N-log.F; i++ {
 			var proposal = log.Proposals[current<<shift|i]
 			if proposal == proposed {
 				count++
 			} else {
-				if count > largest {
-					largest = count
-				}
 				count = 0
 				proposed = proposal
 				for j := uint16(0); j < i; j++ {
@@ -94,7 +89,6 @@ func (log Log) SMR(
 			}
 		}
 		println("Count: ", count)
-		println("Largest: ", largest)
 		log.Indices[current] = 0
 
 		phase = 0
@@ -103,7 +97,7 @@ func (log Log) SMR(
 		} else {
 			state = 0
 		}
-		if largest == 0 || count == log.N-log.F {
+		if count == 0 || count == log.N-log.F {
 			goto cleanup
 		}
 
