@@ -47,7 +47,7 @@ type node struct {
 	removeLocks []*sync.Mutex
 }
 
-const INFO = true
+const INFO = false
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	//var compare = &Comparator{ComparingProposals}
@@ -308,7 +308,6 @@ func (node *node) Run() error {
 				//}
 				//three++
 				//time.Sleep(20 * time.Microsecond)
-				println("Size: ", queue.Size())
 				next, _ := queue.Poll()
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
@@ -325,12 +324,15 @@ func (node *node) Run() error {
 				last = next
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				if message == SKIP {
-					//println("Inconsistent")
-				}
 				if message != last {
 					if last != SKIP {
 						queue.Offer(last)
+						for i := 0; i < 5; i++ {
+							value, _ := queue.Poll()
+							println(value)
+							queue.Offer(value)
+						}
+						time.Sleep(2 * time.Second)
 					}
 					if message == UNKNOWN {
 						for {
