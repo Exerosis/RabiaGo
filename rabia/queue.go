@@ -1,6 +1,7 @@
 package rabia
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 )
@@ -10,6 +11,7 @@ type Queue[T any] interface {
 	Remove(item T) bool
 	Poll() (T, bool)
 	Size() int
+	String() string
 }
 
 type priority[T any] struct {
@@ -29,6 +31,14 @@ func NewPriorityBlockingQueue[T any](
 		cond:    sync.NewCond(&sync.Mutex{}),
 	}
 	return queue
+}
+
+func (queue *priority[T]) String() string {
+	var start = ""
+	for i := range queue.slice[:queue.size] {
+		start = start + "\n" + fmt.Sprintf("%d", queue.slice[i])
+	}
+	return start
 }
 
 func (queue *priority[T]) Offer(item T) bool {
