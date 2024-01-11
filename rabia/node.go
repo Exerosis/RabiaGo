@@ -327,12 +327,16 @@ func (node *node) Run() error {
 				if message != last {
 					if last != SKIP {
 						queue.Offer(last)
-						for i := 0; i < 5; i++ {
+						var values = make([]uint64, 5)
+						for i := 0; i < len(values); i++ {
 							value, _ := queue.Poll()
+							values = append(values, value)
 							println(value)
-							queue.Offer(value)
 						}
-						time.Sleep(2 * time.Second)
+						for i := 0; i < len(values); i++ {
+							queue.Offer(values[i])
+						}
+						time.Sleep(50 * time.Millisecond)
 					}
 					if message == UNKNOWN {
 						for {
