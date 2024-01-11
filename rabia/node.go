@@ -75,7 +75,7 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	if reason != nil {
 		return nil, reason
 	}
-	var log = MakeLog(uint16(len(addresses)), size)
+	var log = MakeLog(uint16(len(addresses)), uint16(len(addresses))/4, size)
 	return &node{
 		log, pipes, addresses, address,
 		queues, make(map[uint64][]byte), sync.RWMutex{},

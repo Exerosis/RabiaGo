@@ -210,12 +210,12 @@ func (log Log) SMR(
 	cleanup:
 		buffer[2] = state
 		reason = states.Write(buffer[:SizeState])
-		info("Sent State: %d(%d) - 1\n", current, phase)
+		info("Sent Cleanup State: %d(%d) - 1\n", current, phase)
 		if reason != nil {
 			return reason
 		}
 		reason = votes.Write(buffer[:SizeVote])
-		info("Sent Vote: %d(%d) - 1\n", current, phase)
+		info("Sent Cleanup Vote: %d(%d) - 1\n", current, phase)
 		if reason != nil {
 			return reason
 		}
