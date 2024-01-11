@@ -146,16 +146,13 @@ func (node *node) Propose(id uint64, data []byte) error {
 	binary.LittleEndian.PutUint64(header[0:], id)
 	binary.LittleEndian.PutUint32(header[8:], uint32(len(data)))
 	var send = append(header, data...)
-	go func() {
-		node.spreadLock.Lock()
-		reason := node.spreader.Write(send)
-		node.spreadLock.Unlock()
-		if reason != nil {
-			panic(reason)
-		}
-
-	}()
-	node.enqueue(id, data)
+	node.spreadLock.Lock()
+	reason := node.spreader.Write(send)
+	node.spreadLock.Unlock()
+	if reason != nil {
+		panic(reason)
+	}
+	//node.enqueue(id, data)
 	return nil
 }
 
