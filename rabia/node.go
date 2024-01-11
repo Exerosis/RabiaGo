@@ -372,7 +372,9 @@ func (node *node) Run() error {
 				var committed = atomic.LoadUint64(&node.committed)
 				//have to wait here until the next slot has been consumed
 				if current-committed >= uint64(log.Size) {
-					println("Wrapping")
+					println("Wrapping: ", current-committed)
+					println("Current: ", current)
+					println("Committed: ", committed)
 					for current-atomic.LoadUint64(&node.committed) >= uint64(log.Size) {
 						time.Sleep(10 * time.Nanosecond)
 					}
