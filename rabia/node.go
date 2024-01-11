@@ -47,7 +47,7 @@ type node struct {
 	removeLocks []*sync.Mutex
 }
 
-const INFO = false
+const INFO = true
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	//var compare = &Comparator{ComparingProposals}
@@ -336,7 +336,7 @@ func (node *node) Run() error {
 							panic("Proposed something in the remove list")
 						}
 						lock.Unlock()
-						//time.Sleep(500 * time.Millisecond)
+						time.Sleep(1500 * time.Millisecond)
 					}
 					if message < UNKNOWN {
 						//println("Removing")
