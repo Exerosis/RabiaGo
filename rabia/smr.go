@@ -128,12 +128,10 @@ func (log Log) SMR(
 				}
 				var depth = LittleEndian.Uint16(buffer[0:])
 				if isOld(depth, current, half) {
-					println("Discarding old")
 					continue
 				}
 				var round = uint16(buffer[2] >> 2)
 				if isOld(round, uint16(phase), 32) {
-					println("Discarding old")
 					continue
 				}
 				states.Index++
@@ -168,12 +166,10 @@ func (log Log) SMR(
 				}
 				var depth = LittleEndian.Uint16(buffer[0:])
 				if isOld(depth, current, half) {
-					println("Discarding old vote")
 					continue
 				}
 				var round = uint16(buffer[2] >> 2)
 				if isOld(round, uint16(phase), 32) {
-					println("Discarding old vote")
 					continue
 				}
 				votes.Index++

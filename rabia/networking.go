@@ -53,9 +53,7 @@ func (multicaster *Dmulticaster) Write(buffer []byte) error {
 }
 func (multicaster *Dmulticaster) Read(buffer []byte) error {
 	connection := multicaster.connections[multicaster.Index%len(multicaster.connections)]
-	if multicaster.name != nil {
-		println(*multicaster.name, " Reading: ", multicaster.Index%len(multicaster.connections))
-	} else {
+	if multicaster.name == nil {
 		multicaster.Index++
 	}
 	return connection.Read(buffer)
