@@ -190,6 +190,7 @@ outer:
 					return reason
 				}
 			} else {
+				panic("This is why")
 				phase++
 				if one > 0 {
 					state = phase<<2 | 1
