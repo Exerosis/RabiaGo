@@ -374,6 +374,7 @@ func (node *node) Run() error {
 				if current-committed >= uint64(log.Size) {
 					println("Wrapping: ", current-committed)
 					println("Current: ", current)
+					println("Highest: ", atomic.LoadInt64(&node.highest))
 					println("Committed: ", committed)
 					for current-atomic.LoadUint64(&node.committed) >= uint64(log.Size) {
 						time.Sleep(10 * time.Nanosecond)
