@@ -79,12 +79,15 @@ func (log Log) SMR(
 			if proposal == proposed {
 				count++
 			} else {
-				count = 0
-				proposed = proposal
+				var next uint16 = 0
 				for j := uint16(0); j < i; j++ {
-					if log.Proposals[current<<shift|j] == proposed {
-						count++
+					if log.Proposals[current<<shift|j] == proposal {
+						next++
 					}
+				}
+				if next > count {
+					proposed = proposal
+					count = next
 				}
 			}
 		}
