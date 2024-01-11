@@ -21,7 +21,7 @@ func OldNode(
 	var lock sync.Mutex
 	var reasons error
 	group.Add(len(pipes))
-	var log = MakeLog(n, uint32((65536/len(pipes))*len(pipes)))
+	var log = MakeLog(n, 1, uint32((65536/len(pipes))*len(pipes)))
 	var instances = make([][]uint64, len(pipes))
 	//messages map ig?
 
