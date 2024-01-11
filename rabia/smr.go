@@ -101,7 +101,7 @@ func (log Log) SMR(
 		} else {
 			state = 0
 		}
-		if highest == 0 || highest == log.N-log.F {
+		if highest == log.N-log.F {
 			if highest == 0 {
 				proposed = SKIP
 			}
