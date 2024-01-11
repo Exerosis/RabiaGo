@@ -399,6 +399,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		var proposal = node.log.Logs[slot]
 		if proposal == NONE {
 			highest = int64(i)
+			println("hit unfilled slot.")
 			//if we hit the first unfilled slot stop
 			break
 		}
