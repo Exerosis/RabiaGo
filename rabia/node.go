@@ -7,6 +7,7 @@ import (
 	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Node interface {
@@ -373,6 +374,7 @@ func (node *node) Run() error {
 				if current-committed >= uint64(log.Size) {
 					println("Wrapping")
 					for current-atomic.LoadUint64(&node.committed) >= uint64(log.Size) {
+						time.Sleep(10 * time.Nanosecond)
 					}
 					println("Thank you! I was turbo wrapping :(")
 				}
