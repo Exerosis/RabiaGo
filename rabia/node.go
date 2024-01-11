@@ -339,7 +339,7 @@ func (node *node) Run() error {
 							panic("Proposed something in the remove list")
 						}
 						lock.Unlock()
-						time.Sleep(500 * time.Second)
+						time.Sleep(500 * time.Millisecond)
 					}
 					if message < UNKNOWN {
 						//println("Removing")
