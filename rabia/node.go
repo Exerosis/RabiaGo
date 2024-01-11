@@ -152,7 +152,7 @@ func (node *node) Propose(id uint64, data []byte) error {
 	if reason != nil {
 		panic(reason)
 	}
-	//node.enqueue(id, data)
+	node.enqueue(id, data)
 	return nil
 }
 
