@@ -102,6 +102,13 @@ func (log Log) SMR(
 			state = 0
 		}
 		if highest == 0 || highest == log.N-log.F {
+			if highest == 0 {
+				proposed = SKIP
+			}
+			reason = commit(current, proposed)
+			if reason != nil {
+				return reason
+			}
 			goto cleanup
 		}
 
