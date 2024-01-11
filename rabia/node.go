@@ -327,6 +327,8 @@ func (node *node) Run() error {
 				if message != last {
 					if last != SKIP {
 						queue.Offer(last)
+					}
+					if message == SKIP {
 						var values = make([]uint64, 5)
 						for i := 0; i < len(values); i++ {
 							value, _ := queue.Poll()
@@ -336,7 +338,7 @@ func (node *node) Run() error {
 						for i := 0; i < len(values); i++ {
 							queue.Offer(values[i])
 						}
-						time.Sleep(50 * time.Millisecond)
+						time.Sleep(100 * time.Millisecond)
 					}
 					if message == UNKNOWN {
 						for {
