@@ -24,7 +24,7 @@ func (comparator *Comparator) Compare(o1, o2 any) int {
 }
 
 func ComparingUint64(o1, o2 any) int {
-	if o1.(uint64) > o2.(uint64) {
+	if o1.(uint64) < o2.(uint64) {
 		return -1
 	} else if o1.(uint64) == o2.(uint64) {
 		return 0
