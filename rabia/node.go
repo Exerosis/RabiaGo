@@ -47,7 +47,7 @@ type node struct {
 	removeLocks []*sync.Mutex
 }
 
-const INFO = true
+const INFO = false
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	//var compare = &Comparator{ComparingProposals}
@@ -331,7 +331,7 @@ func (node *node) Run() error {
 					if message == SKIP {
 						println("had to skip")
 						println(queue.String())
-						time.Sleep(100 * time.Millisecond)
+						time.Sleep(2 * time.Second)
 					}
 					if message < UNKNOWN {
 						//println("Removing")
