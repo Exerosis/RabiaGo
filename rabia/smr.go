@@ -38,7 +38,13 @@ func (log Log) SMR(
 	var buffer = make([]byte, SizeBuffer)
 	var half = uint16(len(log.Logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.Majority)))) + 1
-outer:
+
+	var count = uint16(0)
+	var largest = uint16(0)
+
+	var phase = uint8(0)
+	var state uint8
+	var vote uint8
 	for {
 		current, proposed, reason := messages()
 		if reason != nil {
@@ -51,7 +57,7 @@ outer:
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", current, proposed)
-		for log.Indices[current] < log.Majority {
+		for log.Indices[current] < log.N-log.F {
 			reason := proposes.Read(buffer[:SizeProvider])
 			if reason != nil {
 				return reason
@@ -61,39 +67,45 @@ outer:
 				continue
 			}
 			var proposal = LittleEndian.Uint64(buffer[2:])
-			info("Got Proposal (%d/%d): %d - %d\n", log.Indices[depth]+1, log.Majority, depth, proposal)
 			var index = log.Indices[depth]
-			if index < log.Majority {
-				log.Proposals[current<<shift|index] = proposal
-				log.Indices[depth]++
+
+			info("Got Proposal (%d/%d): %d - %d\n", index+1, log.N-log.F, depth, proposal)
+			log.Proposals[current<<shift|index] = proposal
+			log.Indices[depth] = index + 1
+		}
+
+		count = 0
+		largest = 0
+		for i := uint16(0); i < log.N-log.F; i++ {
+			var proposal = log.Proposals[current<<shift|i]
+			if proposal == proposed {
+				count++
+			} else {
+				if count > largest {
+					largest = count
+				}
+				count = 0
+				proposed = proposal
+				for j := uint16(0); j < i; j++ {
+					if log.Proposals[current<<shift|j] == proposed {
+						count++
+					}
+				}
 			}
 		}
-		var proposal = log.Proposals[current<<shift]
-		var all = false
-		for i := uint16(1); i < log.Majority; i++ {
-			all = log.Proposals[current<<shift|i] == proposal
-			if !all {
-				break
-			}
-		}
-		//if !all {
-		//	for i := uint16(0); i < log.Majority; i++ {
-		//		info("Proposals[%d] = %d\n", i, log.Proposals[current<<shift|i])
-		//	}
-		//	return errors.New("very strange")
-		//}
 		log.Indices[current] = 0
-		var phase = uint8(0)
-		var state uint8
-		if all {
-			state = phase<<2 | 1
+
+		phase = 0
+		if count >= log.Majority {
+			state = 1
 		} else {
-			state = phase<<2 | 0
+			state = 0
 		}
+		if largest == 0 || count == log.N-log.F {
+			goto cleanup
+		}
+
 		for {
-			//if phase > 1 {
-			//	panic("Got to second phase")
-			//}
 			var height = current<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], current)
 			buffer[2] = state
@@ -102,7 +114,7 @@ outer:
 			if reason != nil {
 				return reason
 			}
-			for log.StatesZero[height]+log.StatesOne[height] < uint8(log.Majority) {
+			for log.StatesZero[height]+log.StatesOne[height] < uint8(log.N-log.F) {
 				reason := states.Read(buffer[:SizeState])
 				if reason != nil {
 					return reason
@@ -124,7 +136,6 @@ outer:
 					log.StatesZero[depth<<8|round]++
 				}
 			}
-			var vote uint8
 			if log.StatesOne[height] >= uint8(log.Majority) {
 				vote = phase<<2 | 1
 			} else if log.StatesZero[height] >= uint8(log.Majority) {
@@ -140,7 +151,7 @@ outer:
 			if reason != nil {
 				return reason
 			}
-			for log.VotesZero[height]+log.VotesOne[height]+log.VotesLost[height] < uint8(log.Majority) {
+			for log.VotesZero[height]+log.VotesOne[height]+log.VotesLost[height] < uint8(log.N-log.F) {
 				reason := votes.Read(buffer[:SizeVote])
 				if reason != nil {
 					return reason
@@ -170,39 +181,43 @@ outer:
 			log.VotesOne[height] = 0
 			log.VotesLost[height] = 0
 
-			if one >= uint8(log.F+1) {
-				if all {
-					reason = commit(current, proposal)
-					if reason != nil {
-						return reason
-					}
-				} else {
-					//Commit a value that will never appear naturally
-					//this will force a repair on the slot to get the value.
-					reason = commit(current, UNKNOWN)
-					if reason != nil {
-						return reason
-					}
+			phase++
+			if one >= uint8(log.Majority) {
+				reason = commit(current, proposed)
+				if reason != nil {
+					return reason
 				}
-			} else if zero >= uint8(log.F+1) {
+				state = phase<<2 | 1
+				goto cleanup
+			}
+			if zero >= uint8(log.Majority) {
 				reason = commit(current, SKIP)
 				if reason != nil {
 					return reason
 				}
-			} else {
-				panic("This is why")
-				phase++
-				if one > 0 {
-					state = phase<<2 | 1
-				} else if zero > 0 {
-					state = phase<<2 | 0
-				} else {
-					var random = rand.New(rand.NewSource(int64(height))).Intn(2)
-					state = phase<<2 | uint8(random)
-				}
-				continue
+				state = phase<<2 | 0
+				goto cleanup
 			}
-			continue outer
+			if one > 0 {
+				state = phase<<2 | 1
+			} else if zero > 0 {
+				state = phase<<2 | 0
+			} else {
+				var random = rand.New(rand.NewSource(int64(height))).Intn(2)
+				state = phase<<2 | uint8(random)
+			}
+		}
+	cleanup:
+		buffer[2] = state
+		reason = states.Write(buffer[:SizeState])
+		info("Sent State: %d(%d) - 1\n", current, phase)
+		if reason != nil {
+			return reason
+		}
+		reason = votes.Write(buffer[:SizeVote])
+		info("Sent Vote: %d(%d) - 1\n", current, phase)
+		if reason != nil {
+			return reason
 		}
 	}
 }

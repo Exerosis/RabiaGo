@@ -19,13 +19,12 @@ type Log struct {
 	VotesLost []uint8
 }
 
-func MakeLog(n uint16, size uint32) *Log {
-	var majority = (n / 2) + 1
+func MakeLog(n uint16, f uint16, size uint32) *Log {
 	return &Log{
-		size, n, n / 2, majority,
+		size, n, f, (n / 2) + 1,
 		make([]uint64, size),
 		make([]uint16, size),
-		make([]uint64, uint32(majority)*size),
+		make([]uint64, uint32(n-f)*size),
 		make([]uint8, size*256),
 		make([]uint8, size*256),
 		make([]uint8, size*256),
