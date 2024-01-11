@@ -324,12 +324,10 @@ func (node *node) Run() error {
 				last = next
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				println("Finished: ", slot)
 				if message == SKIP {
 					//println("Inconsistent")
 				}
 				if message != last {
-					println("Didn't propose correctly into: ", slot)
 					if last != SKIP {
 						queue.Offer(last)
 					}
