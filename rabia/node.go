@@ -372,7 +372,7 @@ func (node *node) Run() error {
 				//have to wait here until the next slot has been consumed
 				if current-committed >= uint64(log.Size) {
 					println("Wrapping")
-					for current-committed >= uint64(log.Size) {
+					for current-atomic.LoadUint64(&node.committed) >= uint64(log.Size) {
 					}
 					println("Thank you! I was turbo wrapping :(")
 				}
