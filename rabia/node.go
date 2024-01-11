@@ -328,19 +328,19 @@ func (node *node) Run() error {
 					if last != SKIP {
 						queue.Offer(last)
 					}
-					if message == SKIP {
-						println("had to skip")
-						var values = make([]uint64, 5)
-						for i := 0; i < len(values); i++ {
-							value, _ := queue.Poll()
-							values = append(values, value)
-							println(value)
-						}
-						for i := 0; i < len(values); i++ {
-							queue.Offer(values[i])
-						}
-						time.Sleep(100 * time.Millisecond)
-					}
+					//if message == SKIP {
+					//	println("had to skip")
+					//	var values = make([]uint64, 5)
+					//	for i := 0; i < len(values); i++ {
+					//		value, _ := queue.Poll()
+					//		values = append(values, value)
+					//		println(value)
+					//	}
+					//	for i := 0; i < len(values); i++ {
+					//		queue.Offer(values[i])
+					//	}
+					//	time.Sleep(100 * time.Millisecond)
+					//}
 					if message == UNKNOWN {
 						for {
 							id, repaired, err := node.Repair(current)
