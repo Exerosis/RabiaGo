@@ -39,10 +39,10 @@ func (queue *priority[T]) String() string {
 	var start = ""
 	var count = 0
 	for i := queue.size - 1; i >= 0; i-- {
-		if count < 5 {
-			count++
-			start = start + "\n" + fmt.Sprintf("%d", queue.slice[i])
-		}
+		//if count < 5 {
+		count++
+		start = start + "\n" + fmt.Sprintf("%d", queue.slice[i])
+		//}
 	}
 	return start
 }
