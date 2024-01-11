@@ -132,12 +132,12 @@ func (node *node) enqueue(id uint64, data []byte) {
 		lock.Unlock()
 		return
 	}
-	lock.Unlock()
 	node.proposeLock.Lock()
 	node.messages[id] = data
 	node.proposeLock.Unlock()
 	//node.queues[index].Offer(Identifier{id})
 	node.queues[index].Offer(id)
+	lock.Unlock()
 	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
@@ -343,12 +343,12 @@ func (node *node) Run() error {
 					}
 					if message < UNKNOWN {
 						//println("Removing")
+						var lock = node.removeLocks[index]
+						lock.Lock()
 						if !queue.Remove(message) {
-							var lock = node.removeLocks[index]
-							lock.Lock()
 							node.removeLists[index][message] = message
-							lock.Unlock()
 						}
+						lock.Unlock()
 					}
 
 				}
