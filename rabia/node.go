@@ -406,7 +406,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 	node.consumeLock.Lock()
 	defer node.consumeLock.Unlock()
 	var highest = atomic.LoadInt64(&node.highest)
-	for i := atomic.LoadUint64(&node.committed); int64(i) <= highest; i++ {
+	for i := atomic.LoadUint64(&node.committed) + 1; int64(i) <= highest; i++ {
 		var slot = i % uint64(len(node.log.Logs))
 		var proposal = node.log.Logs[slot]
 		if proposal == NONE {
