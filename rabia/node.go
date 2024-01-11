@@ -441,6 +441,6 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			return reason
 		}
 	}
-	atomic.StoreUint64(&node.committed, uint64(highest+1))
+	atomic.StoreUint64(&node.committed, uint64(highest))
 	return nil
 }
