@@ -172,6 +172,9 @@ func control(network, address string, conn syscall.RawConn) error {
 func Multicaster(connections ...Connection) Connection {
 	return &multicaster{connections: connections}
 }
+func FixedMulticaster(index int, connections ...Connection) Connection {
+	return &multicaster{connections: connections, index: index}
+}
 func Group(address string, port uint16, addresses ...string) ([]Connection, error) {
 	var listener = net.ListenConfig{Control: control}
 	var dialer = &net.Dialer{Control: control}

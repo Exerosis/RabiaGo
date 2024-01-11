@@ -7,7 +7,6 @@ import (
 	"go.uber.org/multierr"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 type Node interface {
@@ -264,7 +263,13 @@ func (node *node) Run() error {
 		}(inbound)
 	}
 
-	time.Sleep(10 * time.Second)
+	var currentNodeIndex int
+	for i, addr := range node.addresses {
+		if addr == node.address {
+			currentNodeIndex = i
+			break
+		}
+	}
 	//var mark = time.Now().UnixNano()
 	for index, pipe := range node.pipes {
 		go func(index int, pipe uint16, queue Queue[uint64]) {
@@ -286,9 +291,9 @@ func (node *node) Run() error {
 				var result = fmt.Errorf("failed to connect %d: %s", index, reason)
 				reasons = multierr.Append(reasons, result)
 			}
-			var proposals = Multicaster(proposers...)
-			var states = Multicaster(staters...)
-			var votes = Multicaster(voters...)
+			var proposals = FixedMulticaster(currentNodeIndex, proposers...)
+			var states = FixedMulticaster(currentNodeIndex, staters...)
+			var votes = FixedMulticaster(currentNodeIndex, voters...)
 			info("Connected!\n")
 			//var three = 0
 			var last uint64
