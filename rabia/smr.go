@@ -96,12 +96,12 @@ func (log Log) SMR(
 		log.Indices[current] = 0
 
 		phase = 0
-		if count >= log.Majority {
+		if highest >= log.Majority {
 			state = 1
 		} else {
 			state = 0
 		}
-		if count == 0 || count == log.N-log.F {
+		if highest == 0 || highest == log.N-log.F {
 			goto cleanup
 		}
 
