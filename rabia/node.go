@@ -329,6 +329,7 @@ func (node *node) Run() error {
 						queue.Offer(last)
 					}
 					if message == SKIP {
+						println("had to skip")
 						var values = make([]uint64, 5)
 						for i := 0; i < len(values); i++ {
 							value, _ := queue.Poll()
