@@ -339,7 +339,7 @@ func (node *node) Run() error {
 						for i := 0; i < len(values); i++ {
 							queue.Offer(values[i])
 						}
-						time.Sleep(100 * time.Millisecond)
+						//time.Sleep(100 * time.Millisecond)
 					}
 					if message < UNKNOWN {
 						//println("Removing")
