@@ -66,6 +66,7 @@ func (log Log) SMR(
 			if isOld(depth, current, half) {
 				continue
 			}
+			proposes.Index++
 			var proposal = LittleEndian.Uint64(buffer[2:])
 			var index = log.Indices[depth]
 
