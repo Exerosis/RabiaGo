@@ -37,7 +37,7 @@ func (queue *priority[T]) String() string {
 	queue.cond.L.Lock()
 	defer queue.cond.L.Unlock()
 	var start = ""
-	for i := range queue.slice[:queue.size] {
+	for i := queue.size - 1; i >= 0; i-- {
 		if i < 5 {
 			start = start + "\n" + fmt.Sprintf("%d", queue.slice[i])
 		}
