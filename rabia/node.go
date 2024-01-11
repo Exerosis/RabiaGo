@@ -332,7 +332,14 @@ func (node *node) Run() error {
 						println("had to skip")
 						println("Proposed: ", last)
 						println(queue.String())
-						//time.Sleep(100 * time.Second)
+						var lock = node.removeLocks[index]
+						lock.Lock()
+						_, present := node.removeLists[index][last]
+						if present {
+							panic("Proposed something in the remove list")
+						}
+						lock.Unlock()
+						time.Sleep(500 * time.Second)
 					}
 					if message < UNKNOWN {
 						//println("Removing")
