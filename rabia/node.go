@@ -330,6 +330,7 @@ func (node *node) Run() error {
 					}
 					if message == SKIP {
 						println("had to skip")
+						println("Proposed: ", last)
 						println(queue.String())
 						//time.Sleep(100 * time.Second)
 					}
