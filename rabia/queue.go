@@ -34,6 +34,8 @@ func NewPriorityBlockingQueue[T any](
 }
 
 func (queue *priority[T]) String() string {
+	queue.cond.L.Lock()
+	defer queue.cond.L.Unlock()
 	var start = ""
 	for i := range queue.slice[:queue.size] {
 		start = start + "\n" + fmt.Sprintf("%d", queue.slice[i])
