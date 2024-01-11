@@ -26,10 +26,6 @@ import (
 const Pipes = 2
 const Count = uint32(100_000)
 
-func runOld(address string, addresses []string, pipes []uint16) error {
-	return rabia.OldNode(3, address, addresses, pipes...)
-}
-
 func runNew(address string, addresses []string, pipes []uint16) error {
 	var complete sync.WaitGroup
 	complete.Add(1)
