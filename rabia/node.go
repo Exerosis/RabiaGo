@@ -44,7 +44,6 @@ type node struct {
 const INFO = true
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
-	//var compare = &Comparator{ComparingProposals}
 	var size = uint32((65536 / len(pipes)) * len(pipes))
 	var queues = make([]Queue[uint64], len(pipes))
 	var removeLists = make([]map[uint64]uint64, len(pipes))
@@ -87,7 +86,6 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 
 func (node *node) enqueue(id uint64, data []byte) {
 	var index = id % uint64(len(node.pipes))
-	//var index = id >>32%uint64(len(node.queues))
 	var lock = node.removeLocks[index]
 	var list = node.removeLists[index]
 	lock.Lock()
@@ -97,10 +95,8 @@ func (node *node) enqueue(id uint64, data []byte) {
 		return
 	}
 	node.messages.Set(id, data)
-	//node.queues[index].Offer(Identifier{id})
 	node.queues[index].Offer(id)
 	lock.Unlock()
-	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
 func (node *node) Propose(id uint64, data []byte) error {
@@ -168,7 +164,6 @@ func (node *node) Run() error {
 	var reasons error
 	group.Add(len(node.pipes))
 	var log = node.log
-	//messages map ig?
 
 	for _, inbound := range node.spreadersInbound {
 		go func(inbound Connection) {
@@ -196,7 +191,6 @@ func (node *node) Run() error {
 			break
 		}
 	}
-	//var mark = time.Now().UnixNano()
 	for index, pipe := range node.pipes {
 		go func(index int, pipe uint16, queue Queue[uint64]) {
 			defer group.Done()
@@ -207,7 +201,6 @@ func (node *node) Run() error {
 			}
 
 			var current = uint64(index)
-			println("Starting with: ", current)
 			proposers, reason := Group(node.address, pipe+1, node.addresses...)
 			staters, reason := Group(node.address, pipe+2, node.addresses...)
 			voters, reason := Group(node.address, pipe+3, node.addresses...)
@@ -221,7 +214,6 @@ func (node *node) Run() error {
 			var states = FixedMulticaster(currentNodeIndex, "States", staters...)
 			var votes = FixedMulticaster(currentNodeIndex, "Votes", voters...)
 			info("Connected!\n")
-			//var three = 0
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				next, _ := queue.Poll()
@@ -285,10 +277,10 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			highest = int64(i)
 			break
 		}
-		data, present := node.messages.Get(proposal)
-		if !present {
-			data = make([]byte, 0)
-		}
+		data := node.messages.WaitFor(proposal)
+		//if !present {
+		//	data = make([]byte, 0)
+		//}
 		reason := block(i, proposal, data)
 		if reason != nil {
 			return reason
