@@ -28,7 +28,6 @@ func (m *BlockingMap[K, V]) Set(key K, value V) {
 func (m *BlockingMap[K, V]) Delete(key K) {
 	m.cond.L.Lock()
 	delete(m.data, key)
-	m.cond.Broadcast()
 	m.cond.L.Unlock()
 }
 
