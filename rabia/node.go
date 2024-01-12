@@ -292,9 +292,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		if proposal == SKIP {
 			continue
 		}
-		node.proposeLock.RLock()
 		data, present := node.messages.Get(proposal)
-		node.proposeLock.RUnlock()
 		if !present {
 			data = make([]byte, 0)
 		}
