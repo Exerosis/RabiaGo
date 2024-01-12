@@ -37,7 +37,7 @@ func (log Log) SMR(
 ) error {
 	var buffer = make([]byte, SizeBuffer)
 	var half = uint16(len(log.Logs) / 2)
-	var shift = uint32(math.Floor(math.Log2(float64(log.Majority)))) + 1
+	var shift = uint32(math.Floor(math.Log2(float64(log.N)))) + 1
 
 	println("Shift: ", shift)
 	var count = uint16(0)
