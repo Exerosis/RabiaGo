@@ -393,11 +393,8 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			continue
 		}
 		node.proposeLock.RLock()
-		data, present := node.messages.Get(proposal)
+		var data = node.messages.WaitFor(proposal)
 		node.proposeLock.RUnlock()
-		if !present {
-			data = make([]byte, 0)
-		}
 		reason := block(i, proposal, data)
 		if reason != nil {
 			return reason
