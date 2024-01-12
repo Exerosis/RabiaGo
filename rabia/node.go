@@ -233,6 +233,7 @@ func (node *node) Run() error {
 					}
 				}
 				log.Logs[current%uint64(log.Size)] = message
+				node.messages.WaitFor(message)
 				var value = atomic.LoadInt64(&node.highest)
 				for value < int64(current) && !atomic.CompareAndSwapInt64(&node.highest, value, int64(current)) {
 					value = atomic.LoadInt64(&node.highest)
