@@ -211,12 +211,10 @@ func (node *node) Run() error {
 			//var three = 0
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
-				println("Size: ", queue.Size())
 				next, _ := queue.Poll()
 				last = next
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				println("Got: ", message)
 				if message != last {
 					queue.Offer(last)
 					if message < SKIP {
