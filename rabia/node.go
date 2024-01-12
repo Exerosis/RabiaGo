@@ -92,7 +92,6 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 
 func (node *node) enqueue(id uint64, data []byte) {
 	var index = id % uint64(len(node.pipes))
-	//var index = id >>32%uint64(len(node.queues))
 	var lock = node.removeLocks[index]
 	var list = node.removeLists[index]
 	lock.Lock()
@@ -102,10 +101,8 @@ func (node *node) enqueue(id uint64, data []byte) {
 		return
 	}
 	node.messages.Set(id, data)
-	//node.queues[index].Offer(Identifier{id})
 	node.queues[index].Offer(id)
 	lock.Unlock()
-	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
 func (node *node) Propose(id uint64, data []byte) error {
@@ -276,9 +273,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		if proposal == SKIP {
 			continue
 		}
-		println("About to wait")
 		var data = node.messages.WaitFor(proposal)
-		println("Stuck waiting")
 		return block(i, proposal, data)
 	}
 	atomic.StoreUint64(&node.committed, uint64(highest))
