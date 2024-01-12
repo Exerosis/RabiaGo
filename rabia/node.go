@@ -26,7 +26,7 @@ type node struct {
 	address   string
 
 	queues      []Queue[uint64]
-	messages    map[uint64][]byte
+	messages    *BlockingMap[uint64, []byte]
 	proposeLock sync.RWMutex
 
 	committed   uint64
@@ -79,7 +79,7 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	var log = MakeLog(uint16(len(addresses)), uint16(len(addresses))/4, size)
 	return &node{
 		log, pipes, addresses, address,
-		queues, make(map[uint64][]byte), sync.RWMutex{},
+		queues, NewBlockingMap[uint64, []byte](), sync.RWMutex{},
 		uint64(0), int64(-1), sync.Mutex{},
 		spreadersInbound, spreadersOutbound,
 		Multicaster(spreadersOutbound...), sync.Mutex{},
@@ -133,7 +133,7 @@ func (node *node) enqueue(id uint64, data []byte) {
 		return
 	}
 	node.proposeLock.Lock()
-	node.messages[id] = data
+	node.messages.Set(id, data)
 	node.proposeLock.Unlock()
 	//node.queues[index].Offer(Identifier{id})
 	node.queues[index].Offer(id)
@@ -241,9 +241,7 @@ func (node *node) Run() error {
 				//improve this and also what if we have the id but the not message? (possible?)
 				if int64(index) <= highest && node.log.Logs[index%uint64(node.log.Size)] != UNKNOWN {
 					var id = node.log.Logs[index%uint64(node.log.Size)]
-					node.proposeLock.RLock()
-					var message = node.messages[id]
-					node.proposeLock.RUnlock()
+					var message = make([]byte, 0)
 					binary.LittleEndian.PutUint64(header[0:], id)
 					binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
 					reason = connection.Write(header)
@@ -360,7 +358,7 @@ func (node *node) Run() error {
 
 				current += uint64(len(node.pipes))
 				node.proposeLock.Lock()
-				delete(node.messages, log.Logs[current%uint64(log.Size)])
+				node.messages.Delete(log.Logs[current%uint64(log.Size)])
 				node.proposeLock.Unlock()
 				log.Logs[current%uint64(log.Size)] = NONE
 				return nil
@@ -395,24 +393,10 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			continue
 		}
 		node.proposeLock.RLock()
-		data, present := node.messages[proposal]
+		data, present := node.messages.Get(proposal)
 		node.proposeLock.RUnlock()
 		if !present {
-			for {
-				id, repaired, _ := node.Repair(i)
-				if id != 0 {
-					if id != proposal {
-						println("ID: ", id)
-						println("Proposal: ", proposal)
-						println("SMR HAS FAILED CATASTROPHICALLY!")
-					}
-					node.proposeLock.Lock()
-					node.messages[id] = make([]byte, 0)
-					node.proposeLock.Unlock()
-					data = repaired
-					break
-				}
-			}
+			data = make([]byte, 0)
 		}
 		reason := block(i, proposal, data)
 		if reason != nil {
