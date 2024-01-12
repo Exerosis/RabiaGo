@@ -38,11 +38,6 @@ type node struct {
 	spreader          Connection
 	spreadLock        sync.Mutex
 
-	repairInbound  []Connection
-	repairOutbound []Connection
-	repairLock     sync.Mutex
-	repairIndex    int
-
 	removeLists []map[uint64]uint64
 	removeLocks []*sync.Mutex
 }
@@ -72,10 +67,6 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	if reason != nil {
 		return nil, reason
 	}
-	repairInbound, repairOutbound, reason := GroupSet(address, 2001, others...)
-	if reason != nil {
-		return nil, reason
-	}
 	var log = MakeLog(uint16(len(addresses)), uint16(len(addresses))/4, size)
 	return &node{
 		log, pipes, addresses, address,
@@ -83,8 +74,7 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 		uint64(0), int64(-1), sync.Mutex{},
 		spreadersInbound, spreadersOutbound,
 		Multicaster(spreadersOutbound...), sync.Mutex{},
-		repairInbound, repairOutbound, sync.Mutex{},
-		0, removeLists, removeLocks,
+		removeLists, removeLocks,
 	}, nil
 }
 
@@ -93,32 +83,7 @@ func (node *node) Size() uint32 {
 }
 
 func (node *node) Repair(index uint64) (uint64, []byte, error) {
-	node.repairLock.Lock()
-	defer node.repairLock.Unlock()
-	//println("Trying to repair: ", index)
-	var client = node.repairOutbound[node.repairIndex%len(node.repairOutbound)]
-	node.repairIndex++
-	//println("repairing with: ", client.(connection).Conn.RemoteAddr().String())
-	//node.repairIndex++
-	var buffer = make([]byte, 8)
-	binary.LittleEndian.PutUint64(buffer, index)
-	var reason = client.Write(buffer)
-	if reason != nil {
-		return 0, nil, reason
-	}
-	var header = make([]byte, 12)
-	reason = client.Read(header)
-	if reason != nil {
-		return 0, nil, reason
-	}
-	var id = binary.LittleEndian.Uint64(header[0:])
-	var amount = binary.LittleEndian.Uint32(header[8:])
-	var message = make([]byte, amount)
-	reason = client.Read(message)
-	if reason != nil {
-		return 0, nil, reason
-	}
-	return id, message, nil
+	return 0, nil, nil
 }
 
 func (node *node) enqueue(id uint64, data []byte) {
@@ -223,38 +188,6 @@ func (node *node) Run() error {
 					panic(reason)
 				}
 				node.enqueue(id, data)
-			}
-		}(inbound)
-	}
-	var empty = make([]byte, 12)
-	for _, inbound := range node.repairInbound {
-		go func(connection Connection) {
-			var buffer = make([]byte, 8)
-			var header = make([]byte, 12)
-			for {
-				var reason = connection.Read(buffer)
-				if reason != nil {
-					panic(reason)
-				}
-				var index = binary.LittleEndian.Uint64(buffer)
-				var highest = atomic.LoadInt64(&node.highest)
-				//improve this and also what if we have the id but the not message? (possible?)
-				if int64(index) <= highest && node.log.Logs[index%uint64(node.log.Size)] != UNKNOWN {
-					var id = node.log.Logs[index%uint64(node.log.Size)]
-					var message = make([]byte, 0)
-					binary.LittleEndian.PutUint64(header[0:], id)
-					binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
-					reason = connection.Write(header)
-					if reason != nil {
-						panic(reason)
-					}
-					reason = connection.Write(message)
-				} else {
-					reason = connection.Write(empty)
-				}
-				if reason != nil {
-					panic(reason)
-				}
 			}
 		}(inbound)
 	}
