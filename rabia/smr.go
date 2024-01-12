@@ -93,6 +93,22 @@ func (log Log) SMR(
 				}
 			}
 		}
+
+		var theMap = make(map[uint64]int)
+		for i := uint16(0); i < log.N; i++ {
+			theMap[log.Proposals[currentSlot<<shift|i]]++
+		}
+		var found = 0
+		var result = uint64(0)
+		for u, i := range theMap {
+			if i > found {
+				found = i
+				result = u
+			}
+		}
+		highest = uint16(found)
+		proposed = result
+
 		log.Indices[currentSlot] = 0
 
 		phase = 0
