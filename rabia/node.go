@@ -230,7 +230,7 @@ func (node *node) Run() error {
 			}, func(slot uint16, message uint64) error {
 				if message != last {
 					queue.Offer(last)
-					if message < UNKNOWN {
+					if message < SKIP {
 						var lock = node.removeLocks[index]
 						lock.Lock()
 						if !queue.Remove(message) {

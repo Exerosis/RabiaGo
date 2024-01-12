@@ -13,11 +13,10 @@ const SizeVote = 3 * Multiplier
 const SizeState = 3 * Multiplier
 
 const NONE = 0
-const UNKNOWN = math.MaxUint64 - 1
 const SKIP = math.MaxUint64
 
 func IsValid(id uint64) bool {
-	return id != 0 && id < UNKNOWN
+	return id != 0 && id < SKIP
 }
 
 // new = a current = b
@@ -230,5 +229,11 @@ func (log Log) SMR(
 		if reason != nil {
 			return reason
 		}
+		var next = currentSlot<<8 | uint16(phase)
+		log.VotesZero[next] = 0
+		log.VotesOne[next] = 0
+		log.VotesLost[next] = 0
+		log.StatesZero[next] = 0
+		log.StatesOne[next] = 0
 	}
 }
