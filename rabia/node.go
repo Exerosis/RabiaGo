@@ -41,7 +41,7 @@ type node struct {
 	removeLocks []*sync.Mutex
 }
 
-const INFO = false
+const INFO = true
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	var size = uint32((65536 / len(pipes)) * len(pipes))
@@ -221,9 +221,6 @@ func (node *node) Run() error {
 				last = next
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				if message == SKIP {
-					println("Skipped")
-				}
 				if message != last {
 					queue.Offer(last)
 					if message < SKIP {
