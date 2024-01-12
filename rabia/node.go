@@ -132,9 +132,7 @@ func (node *node) enqueue(id uint64, data []byte) {
 		lock.Unlock()
 		return
 	}
-	node.proposeLock.Lock()
 	node.messages.Set(id, data)
-	node.proposeLock.Unlock()
 	//node.queues[index].Offer(Identifier{id})
 	node.queues[index].Offer(id)
 	lock.Unlock()
@@ -357,9 +355,7 @@ func (node *node) Run() error {
 				}
 
 				current += uint64(len(node.pipes))
-				node.proposeLock.Lock()
 				node.messages.Delete(log.Logs[current%uint64(log.Size)])
-				node.proposeLock.Unlock()
 				log.Logs[current%uint64(log.Size)] = NONE
 				return nil
 			}, info)
@@ -392,9 +388,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		if proposal == SKIP {
 			continue
 		}
-		node.proposeLock.RLock()
 		data, present := node.messages.Get(proposal)
-		node.proposeLock.RUnlock()
 		if !present {
 			data = make([]byte, 0)
 		}
