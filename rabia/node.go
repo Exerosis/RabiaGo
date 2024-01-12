@@ -304,7 +304,7 @@ func (node *node) Run() error {
 				//	}
 				//}
 				//three++
-				time.Sleep(500 * time.Millisecond)
+				//time.Sleep(500 * time.Millisecond)
 				next, _ := queue.Poll()
 				//if next == nil {
 				//	println("considering noop ", queue.Size())
@@ -336,7 +336,7 @@ func (node *node) Run() error {
 							panic("Proposed something in the remove list")
 						}
 						lock.Unlock()
-						//time.Sleep(1500 * time.Millisecond)
+						time.Sleep(1500 * time.Millisecond)
 					}
 					if message < UNKNOWN {
 						println("Removed: ", message)
