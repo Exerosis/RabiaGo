@@ -221,6 +221,9 @@ func (node *node) Run() error {
 				last = next
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
+				if message == SKIP {
+					println("Skipped")
+				}
 				if message != last {
 					queue.Offer(last)
 					if message < SKIP {
@@ -278,11 +281,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			highest = int64(i)
 			break
 		}
-		data := node.messages.WaitFor(proposal)
-		//if !present {
-		//	println("Why is this happening so much")
-		//	data = make([]byte, 0)
-		//}
+		var data = node.messages.WaitFor(proposal)
 		reason := block(i, proposal, data)
 		if reason != nil {
 			return reason
