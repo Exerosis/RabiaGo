@@ -207,9 +207,9 @@ func (node *node) Run() error {
 				var result = fmt.Errorf("failed to connect %d: %s", index, reason)
 				reasons = multierr.Append(reasons, result)
 			}
-			var proposals = FixedMulticaster(node.index, false, proposers...)
-			var states = FixedMulticaster(node.index, false, staters...)
-			var votes = FixedMulticaster(node.index, false, voters...)
+			var proposals = FixedMulticaster(node.index, "false", proposers...)
+			var states = FixedMulticaster(node.index, "false", staters...)
+			var votes = FixedMulticaster(node.index, "false", voters...)
 			info("Connected!\n")
 			//var three = 0
 			var last uint64
