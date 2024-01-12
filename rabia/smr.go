@@ -39,6 +39,7 @@ func (log Log) SMR(
 	var half = uint16(len(log.Logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.Majority)))) + 1
 
+	println("Shift: ", shift)
 	var count = uint16(0)
 	var highest = uint16(0)
 
