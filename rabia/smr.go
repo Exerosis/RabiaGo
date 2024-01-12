@@ -93,7 +93,7 @@ func (log Log) SMR(
 				}
 			}
 		}
-		info("Loop Found Majority: %dx %d", highest, proposed)
+		info("Loop Found Majority: %dx %d\n", highest, proposed)
 
 		var theMap = make(map[uint64]int)
 		for i := uint16(0); i < log.N; i++ {
@@ -110,7 +110,7 @@ func (log Log) SMR(
 		//highest = uint16(found)
 		//proposed = result
 
-		info("Map Found Majority: %dx %d", found, result)
+		info("Map Found Majority: %dx %d\n", found, result)
 
 		log.Indices[currentSlot] = 0
 
