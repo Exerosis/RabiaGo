@@ -276,9 +276,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		if proposal == SKIP {
 			continue
 		}
-		println("About to wait")
 		var data = node.messages.WaitFor(proposal)
-		println("Stuck waiting")
 		return block(i, proposal, data)
 	}
 	atomic.StoreUint64(&node.committed, uint64(highest))

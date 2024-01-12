@@ -229,11 +229,11 @@ func (log Log) SMR(
 		if reason != nil {
 			return reason
 		}
-		var next = currentSlot<<8 | uint16(phase)
-		log.VotesZero[next] = 0
-		log.VotesOne[next] = 0
-		log.VotesLost[next] = 0
-		log.StatesZero[next] = 0
-		log.StatesOne[next] = 0
+		//var next = currentSlot<<8 | uint16(phase)
+		//log.VotesZero[next] = 0
+		//log.VotesOne[next] = 0
+		//log.VotesLost[next] = 0
+		//log.StatesZero[next] = 0
+		//log.StatesOne[next] = 0
 	}
 }
