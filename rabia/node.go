@@ -277,10 +277,10 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			highest = int64(i)
 			break
 		}
-		data := node.messages.WaitFor(proposal)
-		//if !present {
-		//	data = make([]byte, 0)
-		//}
+		data, present := node.messages.Get(proposal)
+		if !present {
+			data = make([]byte, 0)
+		}
 		reason := block(i, proposal, data)
 		if reason != nil {
 			return reason
