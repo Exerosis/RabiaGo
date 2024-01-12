@@ -39,7 +39,6 @@ func (log Log) SMR(
 	var half = uint16(len(log.Logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.N)))) + 1
 
-	println("Shift: ", shift)
 	var count = uint16(0)
 	var highest = uint16(0)
 
@@ -79,7 +78,6 @@ func (log Log) SMR(
 		highest = 0
 		for i := uint16(0); i < log.N; i++ {
 			var proposal = log.Proposals[currentSlot<<shift|i]
-			println("Looping: ", proposal)
 			if proposal == proposed {
 				highest++
 			} else {
@@ -96,23 +94,6 @@ func (log Log) SMR(
 			}
 		}
 		info("Loop Found Majority: %dx %d\n", highest, proposed)
-
-		var theMap = make(map[uint64]int)
-		for i := uint16(0); i < log.N; i++ {
-			theMap[log.Proposals[currentSlot<<shift|i]]++
-		}
-		var found = 0
-		var result = uint64(0)
-		for u, i := range theMap {
-			if i > found {
-				found = i
-				result = u
-			}
-		}
-		//highest = uint16(found)
-		//proposed = result
-
-		info("Map Found Majority: %dx %d\n", found, result)
 
 		log.Indices[currentSlot] = 0
 
