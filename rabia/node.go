@@ -227,35 +227,12 @@ func (node *node) Run() error {
 			//var three = 0
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
-				//if three == 4 {
-				//	time.Sleep(60 * time.Second)
-				//	println("Entries: ")
-				//	for !queue.IsEmpty() {
-				//		println(queue.Poll().(Identifier).value)
-				//	}
-				//}
-				//three++
-				//time.Sleep(500 * time.Millisecond)
 				next, _ := queue.Poll()
-				//if next == nil {
-				//	println("considering noop ", queue.Size())
-				//	time.Sleep(1000 * time.Millisecond)
-				//	next = queue.Poll()
-				//	if next == nil {
-				//		next = Identifier{GIVE_UP}
-				//	} else {
-				//		println("Second time avoided noop")
-				//	}
-				//} else {
-				//	//println("didn't noop")
-				//}
 				last = next
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
 				if message != last {
-					if last != SKIP {
-						queue.Offer(last)
-					}
+					queue.Offer(last)
 					if message < UNKNOWN {
 						var lock = node.removeLocks[index]
 						lock.Lock()
@@ -265,12 +242,6 @@ func (node *node) Run() error {
 						lock.Unlock()
 					}
 				}
-
-				//Message cannot be unknown at this point.
-
-				//if message != math.MaxUint64 {/**/
-				//	fmt.Printf("[Pipe-%d] %d\n", index, message)
-				//}
 				log.Logs[current%uint64(log.Size)] = message
 				var value = atomic.LoadInt64(&node.highest)
 				for value < int64(current) && !atomic.CompareAndSwapInt64(&node.highest, value, int64(current)) {
@@ -279,10 +250,6 @@ func (node *node) Run() error {
 				var committed = atomic.LoadUint64(&node.committed)
 				//have to wait here until the next slot has been consumed
 				if current-committed >= uint64(log.Size) {
-					println("Wrapping: ", current-committed)
-					println("Current: ", current)
-					println("Highest: ", atomic.LoadInt64(&node.highest))
-					println("Committed: ", committed)
 					for current-atomic.LoadUint64(&node.committed) >= uint64(log.Size) {
 						time.Sleep(10 * time.Nanosecond)
 					}
