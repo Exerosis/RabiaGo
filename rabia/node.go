@@ -392,9 +392,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		if proposal == SKIP {
 			continue
 		}
-		node.proposeLock.RLock()
 		var data = node.messages.WaitFor(proposal)
-		node.proposeLock.RUnlock()
 		reason := block(i, proposal, data)
 		if reason != nil {
 			return reason
