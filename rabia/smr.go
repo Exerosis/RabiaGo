@@ -13,11 +13,10 @@ const SizeVote = 3 * Multiplier
 const SizeState = 3 * Multiplier
 
 const NONE = 0
-const UNKNOWN = math.MaxUint64 - 1
 const SKIP = math.MaxUint64
 
 func IsValid(id uint64) bool {
-	return id != 0 && id < UNKNOWN
+	return id != 0 && id < SKIP
 }
 
 // new = a current = b
@@ -103,7 +102,7 @@ func (log Log) SMR(
 		} else {
 			state = 0
 		}
-		if highest >= log.N-log.F {
+		if highest == 1 || highest >= log.N-log.F {
 			if highest == 1 {
 				proposed = SKIP
 			}
