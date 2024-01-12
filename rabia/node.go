@@ -100,11 +100,8 @@ func (node *node) enqueue(id uint64, data []byte) {
 		lock.Unlock()
 		return
 	}
-	println("starting to set")
 	node.messages.Set(id, data)
-	println("finishing set")
 	node.queues[index].Offer(id)
-	println("finished offer")
 	lock.Unlock()
 }
 
