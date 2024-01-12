@@ -339,7 +339,7 @@ func (node *node) Run() error {
 						//time.Sleep(1500 * time.Millisecond)
 					}
 					if message < UNKNOWN {
-						println("Learned and removed: ", message)
+						println("Removed: ", message)
 						var lock = node.removeLocks[index]
 						lock.Lock()
 						if !queue.Remove(message) {
@@ -347,7 +347,8 @@ func (node *node) Run() error {
 						}
 						lock.Unlock()
 					}
-
+				} else {
+					println("Removed: ", message)
 				}
 
 				//Message cannot be unknown at this point.
