@@ -46,24 +46,24 @@ func (log Log) SMR(
 	var state uint8
 	var vote uint8
 	for {
-		current, proposed, reason := messages()
+		currentSlot, proposed, reason := messages()
 		if reason != nil {
 			return reason
 		}
-		LittleEndian.PutUint16(buffer[0:], current)
+		LittleEndian.PutUint16(buffer[0:], currentSlot)
 		LittleEndian.PutUint64(buffer[2:], proposed)
 		reason = proposes.Write(buffer[:SizeProvider])
 		if reason != nil {
 			return reason
 		}
-		info("Sent Proposal: %d - %d\n", current, proposed)
-		for log.Indices[current] < log.N-log.F {
+		info("Sent Proposal: %d - %d\n", currentSlot, proposed)
+		for log.Indices[currentSlot] < log.N {
 			reason := proposes.Read(buffer[:SizeProvider])
 			if reason != nil {
 				return reason
 			}
 			var depth = LittleEndian.Uint16(buffer[0:])
-			if isOld(depth, current, half) {
+			if isOld(depth, currentSlot, half) {
 				continue
 			}
 			proposes.Index++
@@ -71,19 +71,19 @@ func (log Log) SMR(
 			var index = log.Indices[depth]
 
 			info("Got Proposal (%d/%d): %d - %d\n", index+1, log.N-log.F, depth, proposal)
-			log.Proposals[current<<shift|index] = proposal
+			log.Proposals[currentSlot<<shift|index] = proposal
 			log.Indices[depth] = index + 1
 		}
 
 		highest = 0
-		for i := uint16(0); i < log.N-log.F; i++ {
-			var proposal = log.Proposals[current<<shift|i]
+		for i := uint16(0); i < log.N; i++ {
+			var proposal = log.Proposals[currentSlot<<shift|i]
 			if proposal == proposed {
 				highest++
 			} else {
 				count = 1
 				for j := uint16(0); j < i; j++ {
-					if log.Proposals[current<<shift|j] == proposal {
+					if log.Proposals[currentSlot<<shift|j] == proposal {
 						count++
 					}
 				}
@@ -93,7 +93,7 @@ func (log Log) SMR(
 				}
 			}
 		}
-		log.Indices[current] = 0
+		log.Indices[currentSlot] = 0
 
 		phase = 0
 		if highest >= log.Majority {
@@ -105,7 +105,7 @@ func (log Log) SMR(
 			if highest == 0 {
 				proposed = SKIP
 			}
-			reason = commit(current, proposed)
+			reason = commit(currentSlot, proposed)
 			if reason != nil {
 				return reason
 			}
@@ -113,11 +113,11 @@ func (log Log) SMR(
 		}
 
 		for {
-			var height = current<<8 | uint16(phase)
-			LittleEndian.PutUint16(buffer[0:], current)
+			var height = currentSlot<<8 | uint16(phase)
+			LittleEndian.PutUint16(buffer[0:], currentSlot)
 			buffer[2] = state
 			reason := states.Write(buffer[:SizeState])
-			info("Sent State: %d(%d) - %d\n", current, phase, state)
+			info("Sent State: %d(%d) - %d\n", currentSlot, phase, state)
 			if reason != nil {
 				return reason
 			}
@@ -127,7 +127,7 @@ func (log Log) SMR(
 					return reason
 				}
 				var depth = LittleEndian.Uint16(buffer[0:])
-				if isOld(depth, current, half) {
+				if isOld(depth, currentSlot, half) {
 					continue
 				}
 				var round = uint16(buffer[2] >> 2)
@@ -155,7 +155,7 @@ func (log Log) SMR(
 			log.StatesOne[height] = 0
 			buffer[2] = vote
 			reason = votes.Write(buffer[:SizeVote])
-			info("Sent Vote: %d(%d) - %d\n", current, phase, vote)
+			info("Sent Vote: %d(%d) - %d\n", currentSlot, phase, vote)
 			if reason != nil {
 				return reason
 			}
@@ -165,7 +165,7 @@ func (log Log) SMR(
 					return reason
 				}
 				var depth = LittleEndian.Uint16(buffer[0:])
-				if isOld(depth, current, half) {
+				if isOld(depth, currentSlot, half) {
 					continue
 				}
 				var round = uint16(buffer[2] >> 2)
@@ -192,7 +192,7 @@ func (log Log) SMR(
 
 			phase++
 			if one >= uint8(log.F+1) {
-				reason = commit(current, proposed)
+				reason = commit(currentSlot, proposed)
 				if reason != nil {
 					return reason
 				}
@@ -200,7 +200,7 @@ func (log Log) SMR(
 				goto cleanup
 			}
 			if zero >= uint8(log.F+1) {
-				reason = commit(current, SKIP)
+				reason = commit(currentSlot, SKIP)
 				if reason != nil {
 					return reason
 				}
@@ -219,12 +219,12 @@ func (log Log) SMR(
 	cleanup:
 		buffer[2] = state
 		reason = states.Write(buffer[:SizeState])
-		info("Sent Cleanup State: %d(%d) - 1\n", current, phase)
+		info("Sent Cleanup State: %d(%d) - 1\n", currentSlot, phase)
 		if reason != nil {
 			return reason
 		}
 		reason = votes.Write(buffer[:SizeVote])
-		info("Sent Cleanup Vote: %d(%d) - 1\n", current, phase)
+		info("Sent Cleanup Vote: %d(%d) - 1\n", currentSlot, phase)
 		if reason != nil {
 			return reason
 		}
