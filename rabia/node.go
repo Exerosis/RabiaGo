@@ -325,19 +325,19 @@ func (node *node) Run() error {
 					if last != SKIP {
 						queue.Offer(last)
 					}
-					if message == SKIP {
-						println("had to skip")
-						println("Proposed: ", last)
-						println(queue.String())
-						var lock = node.removeLocks[index]
-						lock.Lock()
-						_, present := node.removeLists[index][last]
-						if present {
-							panic("Proposed something in the remove list")
-						}
-						lock.Unlock()
-						//time.Sleep(1500 * time.Millisecond)
-					}
+					//if message == SKIP {
+					//	println("had to skip")
+					//	println("Proposed: ", last)
+					//	println(queue.String())
+					//	var lock = node.removeLocks[index]
+					//	lock.Lock()
+					//	_, present := node.removeLists[index][last]
+					//	if present {
+					//		panic("Proposed something in the remove list")
+					//	}
+					//	lock.Unlock()
+					//	//time.Sleep(1500 * time.Millisecond)
+					//}
 					if message < UNKNOWN {
 						//println("Removing")
 						var lock = node.removeLocks[index]
