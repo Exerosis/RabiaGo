@@ -278,8 +278,12 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		if proposal == SKIP {
 			continue
 		}
-		var data = node.messages.WaitFor(proposal)
-		return block(i, proposal, data)
+		data, present := node.messages.Get(proposal)
+		if !present {
+			return block(i, proposal, make([]byte, 0))
+		} else {
+			return block(i, proposal, data)
+		}
 	}
 	atomic.StoreUint64(&node.committed, uint64(highest))
 	return nil
