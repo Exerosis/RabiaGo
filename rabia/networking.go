@@ -173,7 +173,7 @@ func control(network, address string, conn syscall.RawConn) error {
 }
 
 func Multicaster(connections ...Connection) *Dmulticaster {
-	return &Dmulticaster{connections: connections, advance: true}
+	return &Dmulticaster{connections: connections}
 }
 func FixedMulticaster(index int, advance bool, connections ...Connection) *Dmulticaster {
 	return &Dmulticaster{connections: connections, Index: index, advance: advance}
