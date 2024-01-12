@@ -25,9 +25,8 @@ type node struct {
 	addresses []string
 	address   string
 
-	queues      []Queue[uint64]
-	messages    *BlockingMap[uint64, []byte]
-	proposeLock sync.RWMutex
+	queues   []Queue[uint64]
+	messages *BlockingMap[uint64, []byte]
 
 	committed   uint64
 	highest     int64
@@ -70,7 +69,7 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	var log = MakeLog(uint16(len(addresses)), uint16(len(addresses))/4, size)
 	return &node{
 		log, pipes, addresses, address,
-		queues, NewBlockingMap[uint64, []byte](), sync.RWMutex{},
+		queues, NewBlockingMap[uint64, []byte](),
 		uint64(0), int64(-1), sync.Mutex{},
 		spreadersInbound, spreadersOutbound,
 		Multicaster(spreadersOutbound...), sync.Mutex{},
@@ -97,9 +96,7 @@ func (node *node) enqueue(id uint64, data []byte) {
 		lock.Unlock()
 		return
 	}
-	node.proposeLock.Lock()
 	node.messages.Set(id, data)
-	node.proposeLock.Unlock()
 	//node.queues[index].Offer(Identifier{id})
 	node.queues[index].Offer(id)
 	lock.Unlock()
@@ -257,9 +254,7 @@ func (node *node) Run() error {
 				}
 
 				current += uint64(len(node.pipes))
-				node.proposeLock.Lock()
 				node.messages.Delete(log.Logs[current%uint64(log.Size)])
-				node.proposeLock.Unlock()
 				log.Logs[current%uint64(log.Size)] = NONE
 				return nil
 			}, info)
@@ -283,14 +278,12 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 	for i := atomic.LoadUint64(&node.committed) + 1; int64(i) <= highest; i++ {
 		var slot = i % uint64(len(node.log.Logs))
 		var proposal = node.log.Logs[slot]
-		if proposal == NONE {
-			highest = int64(i)
-			println("hit unfilled slot.")
-			//if we hit the first unfilled slot stop
-			break
-		}
 		if proposal == SKIP {
 			continue
+		}
+		if proposal == NONE {
+			highest = int64(i)
+			break
 		}
 		data, present := node.messages.Get(proposal)
 		if !present {
