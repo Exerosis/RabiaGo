@@ -107,10 +107,10 @@ func (log Log) SMR(
 				result = u
 			}
 		}
-		highest = uint16(found)
-		proposed = result
+		//highest = uint16(found)
+		//proposed = result
 
-		info("Map Found Majority: %dx %d", highest, proposed)
+		info("Map Found Majority: %dx %d", found, result)
 
 		log.Indices[currentSlot] = 0
 
