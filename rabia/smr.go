@@ -78,6 +78,7 @@ func (log Log) SMR(
 		highest = 0
 		for i := uint16(0); i < log.N; i++ {
 			var proposal = log.Proposals[currentSlot<<shift|i]
+			println("Looping: ", proposal)
 			if proposal == proposed {
 				highest++
 			} else {
