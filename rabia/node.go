@@ -247,7 +247,7 @@ func (node *node) Run() error {
 				}
 
 				current += uint64(len(node.pipes))
-				node.messages.Delete(log.Logs[current%uint64(log.Size)])
+				//node.messages.Delete(log.Logs[current%uint64(log.Size)])
 				log.Logs[current%uint64(log.Size)] = NONE
 				return nil
 			}, info)
