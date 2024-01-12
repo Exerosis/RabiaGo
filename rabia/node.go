@@ -88,13 +88,13 @@ func (node *node) enqueue(id uint64, data []byte) {
 	var index = id % uint64(len(node.pipes))
 	var lock = node.removeLocks[index]
 	var list = node.removeLists[index]
+	node.messages.Set(id, data)
 	lock.Lock()
 	if list[id] == id {
 		delete(list, id)
 		lock.Unlock()
 		return
 	}
-	node.messages.Set(id, data)
 	node.queues[index].Offer(id)
 	lock.Unlock()
 }
@@ -233,7 +233,6 @@ func (node *node) Run() error {
 					}
 				}
 				log.Logs[current%uint64(log.Size)] = message
-				node.messages.WaitFor(message)
 				var value = atomic.LoadInt64(&node.highest)
 				for value < int64(current) && !atomic.CompareAndSwapInt64(&node.highest, value, int64(current)) {
 					value = atomic.LoadInt64(&node.highest)
@@ -279,11 +278,11 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 			highest = int64(i)
 			break
 		}
-		data, present := node.messages.Get(proposal)
-		if !present {
-			println("Why is this happening so much")
-			data = make([]byte, 0)
-		}
+		data := node.messages.WaitFor(proposal)
+		//if !present {
+		//	println("Why is this happening so much")
+		//	data = make([]byte, 0)
+		//}
 		reason := block(i, proposal, data)
 		if reason != nil {
 			return reason
