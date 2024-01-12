@@ -164,6 +164,7 @@ func (node *node) Run() error {
 	var reasons error
 	group.Add(len(node.pipes))
 	var log = node.log
+	//messages map ig?
 
 	for _, inbound := range node.spreadersInbound {
 		go func(inbound Connection) {
@@ -279,6 +280,7 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		}
 		data, present := node.messages.Get(proposal)
 		if !present {
+			println("Why is this happening so much")
 			data = make([]byte, 0)
 		}
 		reason := block(i, proposal, data)
