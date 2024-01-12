@@ -25,19 +25,23 @@ type node struct {
 	addresses []string
 	address   string
 
-	queues   []Queue[uint64]
-	messages *BlockingMap[uint64, []byte]
+	queues      []Queue[uint64]
+	messages    *BlockingMap[uint64, []byte]
+	proposeLock sync.RWMutex
 
 	committed   uint64
 	highest     int64
 	consumeLock sync.Mutex
 
-	index int
-
 	spreadersInbound  []Connection
 	spreadersOutbound []Connection
 	spreader          Connection
 	spreadLock        sync.Mutex
+
+	repairInbound  []Connection
+	repairOutbound []Connection
+	repairLock     sync.Mutex
+	repairIndex    int
 
 	removeLists []map[uint64]uint64
 	removeLocks []*sync.Mutex
@@ -59,26 +63,28 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 		removeLocks[i] = &sync.Mutex{}
 	}
 	var others []string
-	var index = 0
-	for i, other := range addresses {
+	for _, other := range addresses {
 		if other != address {
 			others = append(others, other)
-		} else {
-			index = i
 		}
 	}
 	spreadersInbound, spreadersOutbound, reason := GroupSet(address, 25565, others...)
 	if reason != nil {
 		return nil, reason
 	}
+	repairInbound, repairOutbound, reason := GroupSet(address, 2001, others...)
+	if reason != nil {
+		return nil, reason
+	}
 	var log = MakeLog(uint16(len(addresses)), uint16(len(addresses))/4, size)
 	return &node{
 		log, pipes, addresses, address,
-		queues, NewBlockingMap[uint64, []byte](),
+		queues, NewBlockingMap[uint64, []byte](), sync.RWMutex{},
 		uint64(0), int64(-1), sync.Mutex{},
-		index, spreadersInbound, spreadersOutbound,
+		spreadersInbound, spreadersOutbound,
 		Multicaster(spreadersOutbound...), sync.Mutex{},
-		removeLists, removeLocks,
+		repairInbound, repairOutbound, sync.Mutex{},
+		0, removeLists, removeLocks,
 	}, nil
 }
 
@@ -87,11 +93,37 @@ func (node *node) Size() uint32 {
 }
 
 func (node *node) Repair(index uint64) (uint64, []byte, error) {
-	return 0, nil, nil
+	node.repairLock.Lock()
+	defer node.repairLock.Unlock()
+	//println("Trying to repair: ", index)
+	var client = node.repairOutbound[node.repairIndex%len(node.repairOutbound)]
+	node.repairIndex++
+	//println("repairing with: ", client.(connection).Conn.RemoteAddr().String())
+	//node.repairIndex++
+	var buffer = make([]byte, 8)
+	binary.LittleEndian.PutUint64(buffer, index)
+	var reason = client.Write(buffer)
+	if reason != nil {
+		return 0, nil, reason
+	}
+	var header = make([]byte, 12)
+	reason = client.Read(header)
+	if reason != nil {
+		return 0, nil, reason
+	}
+	var id = binary.LittleEndian.Uint64(header[0:])
+	var amount = binary.LittleEndian.Uint32(header[8:])
+	var message = make([]byte, amount)
+	reason = client.Read(message)
+	if reason != nil {
+		return 0, nil, reason
+	}
+	return id, message, nil
 }
 
 func (node *node) enqueue(id uint64, data []byte) {
 	var index = id % uint64(len(node.pipes))
+	//var index = id >>32%uint64(len(node.queues))
 	var lock = node.removeLocks[index]
 	var list = node.removeLists[index]
 	lock.Lock()
@@ -100,12 +132,13 @@ func (node *node) enqueue(id uint64, data []byte) {
 		lock.Unlock()
 		return
 	}
-	println("starting to set")
+	node.proposeLock.Lock()
 	node.messages.Set(id, data)
-	println("finishing set")
+	node.proposeLock.Unlock()
+	//node.queues[index].Offer(Identifier{id})
 	node.queues[index].Offer(id)
-	println("finished offer")
 	lock.Unlock()
+	//node.queues[id >>32%uint64(len(node.queues))].Offer(Identifier{id})
 }
 
 func (node *node) Propose(id uint64, data []byte) error {
@@ -135,11 +168,18 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 		var lock sync.Mutex
 		var reasons error
 
+		var currentNodeIndex int
+		for i, addr := range node.addresses {
+			if addr == node.address {
+				currentNodeIndex = i
+				break
+			}
+		}
 		group.Add(len(node.spreadersOutbound))
 		node.spreadLock.Lock()
 		for i, connection := range node.spreadersOutbound {
 			dataIndex := i
-			if i >= node.index {
+			if i >= currentNodeIndex {
 				dataIndex++ // Skip the current node's data
 			}
 			go func(connection Connection, data []byte) {
@@ -155,7 +195,7 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 		}
 		group.Wait()
 		node.spreadLock.Unlock()
-		node.enqueue(id, data[node.index])
+		node.enqueue(id, data[currentNodeIndex])
 	}()
 	return nil
 }
@@ -186,7 +226,46 @@ func (node *node) Run() error {
 			}
 		}(inbound)
 	}
+	var empty = make([]byte, 12)
+	for _, inbound := range node.repairInbound {
+		go func(connection Connection) {
+			var buffer = make([]byte, 8)
+			var header = make([]byte, 12)
+			for {
+				var reason = connection.Read(buffer)
+				if reason != nil {
+					panic(reason)
+				}
+				var index = binary.LittleEndian.Uint64(buffer)
+				var highest = atomic.LoadInt64(&node.highest)
+				//improve this and also what if we have the id but the not message? (possible?)
+				if int64(index) <= highest && node.log.Logs[index%uint64(node.log.Size)] != UNKNOWN {
+					var id = node.log.Logs[index%uint64(node.log.Size)]
+					var message = make([]byte, 0)
+					binary.LittleEndian.PutUint64(header[0:], id)
+					binary.LittleEndian.PutUint32(header[8:], uint32(len(message)))
+					reason = connection.Write(header)
+					if reason != nil {
+						panic(reason)
+					}
+					reason = connection.Write(message)
+				} else {
+					reason = connection.Write(empty)
+				}
+				if reason != nil {
+					panic(reason)
+				}
+			}
+		}(inbound)
+	}
 
+	var currentNodeIndex int
+	for i, addr := range node.addresses {
+		if addr == node.address {
+			currentNodeIndex = i
+			break
+		}
+	}
 	//var mark = time.Now().UnixNano()
 	for index, pipe := range node.pipes {
 		go func(index int, pipe uint16, queue Queue[uint64]) {
@@ -198,6 +277,7 @@ func (node *node) Run() error {
 			}
 
 			var current = uint64(index)
+			println("Starting with: ", current)
 			proposers, reason := Group(node.address, pipe+1, node.addresses...)
 			staters, reason := Group(node.address, pipe+2, node.addresses...)
 			voters, reason := Group(node.address, pipe+3, node.addresses...)
@@ -207,22 +287,43 @@ func (node *node) Run() error {
 				var result = fmt.Errorf("failed to connect %d: %s", index, reason)
 				reasons = multierr.Append(reasons, result)
 			}
-			var proposals = FixedMulticaster(node.index, false, proposers...)
-			var states = FixedMulticaster(node.index, false, staters...)
-			var votes = FixedMulticaster(node.index, false, voters...)
+			var proposals = FixedMulticaster(currentNodeIndex, "Proposals", proposers...)
+			var states = FixedMulticaster(currentNodeIndex, "States", staters...)
+			var votes = FixedMulticaster(currentNodeIndex, "Votes", voters...)
 			info("Connected!\n")
 			//var three = 0
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
-				println("Size: ", queue.Size())
+				//if three == 4 {
+				//	time.Sleep(60 * time.Second)
+				//	println("Entries: ")
+				//	for !queue.IsEmpty() {
+				//		println(queue.Poll().(Identifier).value)
+				//	}
+				//}
+				//three++
+				//time.Sleep(500 * time.Millisecond)
 				next, _ := queue.Poll()
+				//if next == nil {
+				//	println("considering noop ", queue.Size())
+				//	time.Sleep(1000 * time.Millisecond)
+				//	next = queue.Poll()
+				//	if next == nil {
+				//		next = Identifier{GIVE_UP}
+				//	} else {
+				//		println("Second time avoided noop")
+				//	}
+				//} else {
+				//	//println("didn't noop")
+				//}
 				last = next
 				return uint16(current % uint64(log.Size)), last, nil
 			}, func(slot uint16, message uint64) error {
-				println("Got: ", message)
 				if message != last {
-					queue.Offer(last)
-					if message < SKIP {
+					if last != SKIP {
+						queue.Offer(last)
+					}
+					if message < UNKNOWN {
 						var lock = node.removeLocks[index]
 						lock.Lock()
 						if !queue.Remove(message) {
@@ -232,6 +333,11 @@ func (node *node) Run() error {
 					}
 				}
 
+				//Message cannot be unknown at this point.
+
+				//if message != math.MaxUint64 {/**/
+				//	fmt.Printf("[Pipe-%d] %d\n", index, message)
+				//}
 				log.Logs[current%uint64(log.Size)] = message
 				var value = atomic.LoadInt64(&node.highest)
 				for value < int64(current) && !atomic.CompareAndSwapInt64(&node.highest, value, int64(current)) {
@@ -240,6 +346,10 @@ func (node *node) Run() error {
 				var committed = atomic.LoadUint64(&node.committed)
 				//have to wait here until the next slot has been consumed
 				if current-committed >= uint64(log.Size) {
+					println("Wrapping: ", current-committed)
+					println("Current: ", current)
+					println("Highest: ", atomic.LoadInt64(&node.highest))
+					println("Committed: ", committed)
 					for current-atomic.LoadUint64(&node.committed) >= uint64(log.Size) {
 						time.Sleep(10 * time.Nanosecond)
 					}
@@ -247,7 +357,9 @@ func (node *node) Run() error {
 				}
 
 				current += uint64(len(node.pipes))
+				node.proposeLock.Lock()
 				node.messages.Delete(log.Logs[current%uint64(log.Size)])
+				node.proposeLock.Unlock()
 				log.Logs[current%uint64(log.Size)] = NONE
 				return nil
 			}, info)
@@ -273,13 +385,23 @@ func (node *node) Consume(block func(uint64, uint64, []byte) error) error {
 		var proposal = node.log.Logs[slot]
 		if proposal == NONE {
 			highest = int64(i)
+			println("hit unfilled slot.")
+			//if we hit the first unfilled slot stop
 			break
 		}
 		if proposal == SKIP {
 			continue
 		}
-		var data = node.messages.WaitFor(proposal)
-		return block(i, proposal, data)
+		node.proposeLock.RLock()
+		data, present := node.messages.Get(proposal)
+		node.proposeLock.RUnlock()
+		if !present {
+			data = make([]byte, 0)
+		}
+		reason := block(i, proposal, data)
+		if reason != nil {
+			return reason
+		}
 	}
 	atomic.StoreUint64(&node.committed, uint64(highest))
 	return nil
