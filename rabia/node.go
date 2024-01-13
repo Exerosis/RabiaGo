@@ -161,7 +161,6 @@ func (node *node) Run() error {
 	var reasons error
 	group.Add(len(node.pipes))
 	var log = node.log
-	//messages map ig?
 
 	for _, inbound := range node.spreadersInbound {
 		go func(inbound Connection) {
