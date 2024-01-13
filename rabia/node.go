@@ -31,6 +31,7 @@ type node struct {
 	committed   uint64
 	highest     int64
 	consumeLock sync.Mutex
+	index       int
 
 	spreadersInbound  []Connection
 	spreadersOutbound []Connection
@@ -55,10 +56,13 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 		removeLists[i] = make(map[uint64]uint64)
 		removeLocks[i] = &sync.Mutex{}
 	}
+	var index = 0
 	var others []string
-	for _, other := range addresses {
+	for i, other := range addresses {
 		if other != address {
 			others = append(others, other)
+		} else {
+			index = i
 		}
 	}
 	spreadersInbound, spreadersOutbound, reason := GroupSet(address, 25565, others...)
@@ -69,7 +73,7 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	return &node{
 		log, pipes, addresses, address,
 		queues, NewBlockingMap[uint64, []byte](),
-		uint64(0), int64(-1), sync.Mutex{},
+		uint64(0), int64(-1), sync.Mutex{}, index,
 		spreadersInbound, spreadersOutbound,
 		Multicaster(spreadersOutbound...), sync.Mutex{},
 		removeLists, removeLocks,
@@ -126,18 +130,11 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 		var lock sync.Mutex
 		var reasons error
 
-		var currentNodeIndex int
-		for i, addr := range node.addresses {
-			if addr == node.address {
-				currentNodeIndex = i
-				break
-			}
-		}
 		group.Add(len(node.spreadersOutbound))
 		node.spreadLock.Lock()
 		for i, connection := range node.spreadersOutbound {
 			dataIndex := i
-			if i >= currentNodeIndex {
+			if i >= node.index {
 				dataIndex++ // Skip the current node's data
 			}
 			go func(connection Connection, data []byte) {
@@ -153,7 +150,7 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 		}
 		group.Wait()
 		node.spreadLock.Unlock()
-		node.enqueue(id, data[currentNodeIndex])
+		node.enqueue(id, data[node.index])
 	}()
 	return nil
 }
@@ -185,18 +182,12 @@ func (node *node) Run() error {
 		}(inbound)
 	}
 
-	var currentNodeIndex int
-	for i, addr := range node.addresses {
-		if addr == node.address {
-			currentNodeIndex = i
-			break
-		}
-	}
 	for index, pipe := range node.pipes {
 		go func(index int, pipe uint16, queue Queue[uint64]) {
 			defer group.Done()
-			var info = func(format string, a ...interface{}) {
-				if INFO {
+			var info = func(format string, a ...interface{}) {}
+			if INFO {
+				info = func(format string, a ...interface{}) {
 					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)
 				}
 			}
@@ -211,9 +202,9 @@ func (node *node) Run() error {
 				var result = fmt.Errorf("failed to connect %d: %s", index, reason)
 				reasons = multierr.Append(reasons, result)
 			}
-			var proposals = FixedMulticaster(currentNodeIndex, "Proposals", proposers...)
-			var states = FixedMulticaster(currentNodeIndex, "States", staters...)
-			var votes = FixedMulticaster(currentNodeIndex, "Votes", voters...)
+			var proposals = FixedMulticaster(node.index, proposers...)
+			var states = FixedMulticaster(node.index, staters...)
+			var votes = FixedMulticaster(node.index, voters...)
 			info("Connected!\n")
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {

@@ -41,7 +41,6 @@ func (m *BlockingMap[K, V]) Get(key K) (V, bool) {
 func (m *BlockingMap[K, V]) WaitFor(key K) V {
 	m.cond.L.Lock()
 	defer m.cond.L.Unlock()
-
 	for {
 		if value, ok := m.data[key]; ok {
 			return value
