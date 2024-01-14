@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 )
 
 type Queue[T any] interface {
 	Offer(item T) bool
 	Remove(item T) bool
 	Poll() (T, bool)
+	PollFast() (T, bool)
 	Size() int
 	String() string
 }
@@ -75,6 +77,23 @@ func (queue *priority[T]) Poll() (T, bool) {
 
 	if queue.size == 0 {
 		queue.cond.Wait()
+	}
+	queue.size--
+	return queue.slice[queue.size], true
+}
+
+func (queue *priority[T]) PollFast() (T, bool) {
+	queue.cond.L.Lock()
+	defer queue.cond.L.Unlock()
+
+	if queue.size == 0 {
+		queue.cond.L.Unlock()
+		time.Sleep(10 * time.Nanosecond)
+		queue.cond.L.Lock()
+	}
+	if queue.size == 0 {
+		var result T
+		return result, false
 	}
 	queue.size--
 	return queue.slice[queue.size], true
