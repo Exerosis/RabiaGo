@@ -208,7 +208,9 @@ func (node *node) Run() error {
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				time.Sleep(500 * time.Millisecond)
+				info("Waiting")
 				next, present := queue.PollFast()
+				info("Selected")
 				if !present {
 					last = SKIP
 				} else {
