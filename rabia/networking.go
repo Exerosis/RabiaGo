@@ -56,6 +56,7 @@ func (multicaster *Dmulticaster) Read(buffer []byte) error {
 	if multicaster.advance {
 		multicaster.Index++
 	}
+	println("About to read from: ", multicaster.Index%len(multicaster.connections))
 	return connection.Read(buffer)
 }
 func (multicaster *Dmulticaster) Close() error {
