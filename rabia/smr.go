@@ -63,6 +63,7 @@ func (log Log) SMR(
 			}
 			var depth = LittleEndian.Uint16(buffer[0:])
 			if isOld(depth, currentSlot, half) {
+				println("Discarding old proposal")
 				continue
 			}
 			proposes.Index++
