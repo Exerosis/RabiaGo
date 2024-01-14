@@ -103,7 +103,7 @@ func (log Log) SMR(
 			state = 0
 		}
 		if highest == 1 || highest >= log.N-log.F {
-			println("Into optimization instead.")
+			info("Into optimization instead.")
 			if highest == 1 {
 				proposed = SKIP
 			}
