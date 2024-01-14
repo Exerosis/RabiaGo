@@ -23,6 +23,7 @@ type Dmulticaster struct {
 	Index       int
 	closed      atomic.Bool
 	advance     bool
+	name        *string
 }
 
 func (multicaster *Dmulticaster) Write(buffer []byte) error {
@@ -56,7 +57,7 @@ func (multicaster *Dmulticaster) Read(buffer []byte) error {
 	if multicaster.advance {
 		multicaster.Index++
 	}
-	println("About to read from: ", multicaster.Index%len(multicaster.connections))
+	println("About to read from: ", *multicaster.name, " - ", multicaster.Index%len(multicaster.connections))
 	return connection.Read(buffer)
 }
 func (multicaster *Dmulticaster) Close() error {
@@ -176,8 +177,8 @@ func control(network, address string, conn syscall.RawConn) error {
 func Multicaster(connections ...Connection) *Dmulticaster {
 	return &Dmulticaster{connections: connections, advance: true}
 }
-func FixedMulticaster(index int, connections ...Connection) *Dmulticaster {
-	return &Dmulticaster{connections: connections, Index: index, advance: false}
+func FixedMulticaster(index int, name string, connections ...Connection) *Dmulticaster {
+	return &Dmulticaster{connections: connections, Index: index, advance: false, name: &name}
 }
 func Group(address string, port uint16, addresses ...string) ([]Connection, error) {
 	var listener = net.ListenConfig{Control: control}

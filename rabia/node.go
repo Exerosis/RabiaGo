@@ -201,9 +201,9 @@ func (node *node) Run() error {
 				var result = fmt.Errorf("failed to connect %d: %s", index, reason)
 				reasons = multierr.Append(reasons, result)
 			}
-			var proposals = FixedMulticaster(node.index, proposers...)
-			var states = FixedMulticaster(node.index, staters...)
-			var votes = FixedMulticaster(node.index, voters...)
+			var proposals = FixedMulticaster(node.index, fmt.Sprintf("Proposals Pipe [%d]", index), proposers...)
+			var states = FixedMulticaster(node.index, fmt.Sprintf("States Pipe [%d]", index), staters...)
+			var votes = FixedMulticaster(node.index, fmt.Sprintf("Votes Pipe [%d]", index), voters...)
 			info("Connected!\n")
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
