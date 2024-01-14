@@ -185,7 +185,7 @@ func (node *node) Run() error {
 		go func(index int, pipe uint16, queue Queue[uint64]) {
 			defer group.Done()
 			var info = func(format string, a ...interface{}) {}
-			if INFO {
+			if INFO && index != 1 {
 				info = func(format string, a ...interface{}) {
 					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)
 				}
