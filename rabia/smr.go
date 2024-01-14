@@ -103,7 +103,7 @@ func (log Log) SMR(
 			state = 0
 		}
 		if false { // highest == 1 || highest >= log.N-log.F
-			info("Into optimization instead.")
+			info("Into optimization instead.\n")
 			if highest == 1 {
 				proposed = SKIP
 			}
@@ -113,7 +113,7 @@ func (log Log) SMR(
 			}
 			goto cleanup
 		}
-		info("Got here")
+		info("Got here\n")
 		for {
 			var height = currentSlot<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], currentSlot)
