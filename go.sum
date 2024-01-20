@@ -8,8 +8,6 @@ github.com/aws/aws-lambda-go v1.22.0/go.mod h1:jJmlefzPfGnckuHdXX7/80O3BvUUi12XO
 github.com/aws/aws-sdk-go v1.17.12/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.36.29/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aws/aws-xray-sdk-go v1.2.0/go.mod h1:tmxq1c+yeEbMh39OmRFuXOrse5ajRlMmDXJ6LrCVsIs=
-github.com/better-concurrent/guc v0.0.0-20190520022744-eb29266403a1 h1:taXXbxzIUkSRPvV3q8ffLJn0IMXIcoHpfZfmjaZk2/k=
-github.com/better-concurrent/guc v0.0.0-20190520022744-eb29266403a1/go.mod h1:NFddn/qUDZYNyd3jV1kthUQo1IoiZH7+O/qe/EtPmwk=
 github.com/cisco/go-hpke v0.0.0-20201023221920-2866d2aa0603/go.mod h1:AyK7f6CWiLAvOFmAyCEF5xDN51zS6PIZgj3Qq7hla1Y=
 github.com/cisco/go-tls-syntax v0.0.0-20200617162716-46b0cfb76b9b/go.mod h1:0AZAV7lYvynZQ5ErHlGMKH+4QYMyNCFd+AiL9MlrCYA=
 github.com/cloudflare/circl v1.0.0/go.mod h1:MhjB3NEEhJbTOdLLq964NIUisXDxaE1WkQPUxtgZXiY=
