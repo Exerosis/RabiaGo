@@ -102,7 +102,7 @@ func (log Log) SMR(
 		} else {
 			state = 0
 		}
-		if highest == 1 || highest >= log.N-log.F { // false
+		if false { // highest == 1 || highest >= log.N-log.F
 			info("Into optimization instead.\n")
 			if highest == 1 {
 				proposed = SKIP
