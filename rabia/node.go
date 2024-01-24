@@ -207,7 +207,6 @@ func (node *node) Run() error {
 			info("Connected!\n")
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
-				time.Sleep(500 * time.Millisecond)
 				info("Waiting\n")
 				next, present := queue.PollFast()
 				info("Selected\n")
