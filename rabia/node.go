@@ -42,7 +42,7 @@ type node struct {
 	removeLocks []*sync.Mutex
 }
 
-const INFO = true
+const INFO = false
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
 	var size = uint32((65536 / len(pipes)) * len(pipes))
@@ -208,7 +208,7 @@ func (node *node) Run() error {
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				info("Waiting\n")
-				next, present := queue.PollFast()
+				next, present := queue.Poll()
 				info("Selected\n")
 				if !present {
 					last = SKIP
