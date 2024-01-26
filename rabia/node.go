@@ -185,7 +185,7 @@ func (node *node) Run() error {
 		go func(index int, pipe uint16, queue Queue[uint64]) {
 			defer group.Done()
 			var info = func(format string, a ...interface{}) {}
-			if INFO && index != 1 {
+			if INFO {
 				info = func(format string, a ...interface{}) {
 					fmt.Printf(fmt.Sprintf("[Pipe-%d] %s", index, format), a...)
 				}
@@ -207,9 +207,7 @@ func (node *node) Run() error {
 			info("Connected!\n")
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
-				info("Waiting\n")
 				next, present := queue.Poll()
-				info("Selected\n")
 				if !present {
 					last = SKIP
 				} else {
