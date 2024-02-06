@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "./rpc";
+
+service Node {
+  rpc Read(ReadRequest) returns (ReadResponse) {}
+}
+
+message ReadRequest {
+  uint64 slot = 1;
+}
+message ReadResponse {
+  uint32 index = 1;
+  bytes value = 2;
+}
