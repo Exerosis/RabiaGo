@@ -10,6 +10,5 @@ message ReadRequest {
   uint64 slot = 1;
 }
 message ReadResponse {
-  uint32 index = 1;
   bytes value = 2;
 }
