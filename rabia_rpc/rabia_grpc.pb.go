@@ -35,7 +35,7 @@ func NewNodeClient(cc grpc.ClientConnInterface) NodeClient {
 
 func (c *nodeClient) Read(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error) {
 	out := new(ReadResponse)
-	err := c.cc.Invoke(ctx, "/Node/Read", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/rabia_rpc.Node/Read", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func _Node_Read_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Node/Read",
+		FullMethod: "/rabia_rpc.Node/Read",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServer).Read(ctx, req.(*ReadRequest))
@@ -92,7 +92,7 @@ func _Node_Read_Handler(srv interface{}, ctx context.Context, dec func(interface
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Node_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Node",
+	ServiceName: "rabia_rpc.Node",
 	HandlerType: (*NodeServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
