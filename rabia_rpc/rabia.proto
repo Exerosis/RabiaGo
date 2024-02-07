@@ -1,4 +1,5 @@
 syntax = "proto3";
+package rabia_rpc;
 
 option go_package = "./rabia_rpc";
 
