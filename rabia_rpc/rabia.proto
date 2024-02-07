@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "./rpc";
+option go_package = "./rabia_rpc";
 
 service Node {
   rpc Read(ReadRequest) returns (ReadResponse) {}

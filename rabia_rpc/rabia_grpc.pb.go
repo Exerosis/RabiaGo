@@ -4,7 +4,7 @@
 // - protoc             v5.26.0--rc2
 // source: rabia.proto
 
-package rpc
+package rabia_rpc
 
 import (
 	context "context"
