@@ -137,9 +137,10 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 			if i >= node.index {
 				dataIndex++ // Skip the current node's data
 			}
-			go func(connection Connection, data []byte) {
+			go func(connection Connection, data []byte, index int) {
+				fmt.Printf("\nProposing out: %d\n", index)
 				reason := connection.Write(append(header, data...))
-				fmt.Printf("\nProposed out")
+				fmt.Printf("Wrote out: %d\n", index)
 				if reason != nil {
 					lock.Lock()
 					reasons = multierr.Append(reasons, reason)
@@ -147,7 +148,7 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 				} else {
 					group.Done()
 				}
-			}(connection, data[dataIndex])
+			}(connection, data[dataIndex], i)
 		}
 		group.Wait()
 		node.spreadLock.Unlock()
