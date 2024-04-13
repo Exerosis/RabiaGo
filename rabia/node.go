@@ -209,8 +209,9 @@ func (node *node) Run() error {
 			info("Connected!\n")
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
+				fmt.Printf("Polling\n")
 				next, present := queue.Poll()
-				fmt.Printf("Found: %d\n", next)
+				fmt.Printf("Polled: %d\n", next)
 				if !present {
 					last = SKIP
 				} else {
