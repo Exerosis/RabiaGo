@@ -185,6 +185,7 @@ func (node *node) Run() error {
 
 	for index, pipe := range node.pipes {
 		go func(index int, pipe uint16, queue Queue[uint64]) {
+			fmt.Println("Well at least I'm trying lol!")
 			defer group.Done()
 			var info = func(format string, a ...interface{}) {}
 			if INFO {
