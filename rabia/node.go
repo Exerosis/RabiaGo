@@ -89,6 +89,7 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 }
 
 func (node *node) enqueue(id uint64, data []byte) {
+	fmt.Printf("Enqueue: %d\n", id)
 	var index = id % uint64(len(node.pipes))
 	var lock = node.removeLocks[index]
 	var list = node.removeLists[index]
@@ -101,6 +102,7 @@ func (node *node) enqueue(id uint64, data []byte) {
 	}
 	node.queues[index].Offer(id)
 	lock.Unlock()
+	fmt.Printf("Enqueued: %d\n", id)
 }
 
 func (node *node) Propose(id uint64, data []byte) error {
