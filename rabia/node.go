@@ -138,9 +138,7 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 				dataIndex++ // Skip the current node's data
 			}
 			go func(connection Connection, data []byte, index int) {
-				fmt.Printf("\nProposing out: %d\n", index)
 				reason := connection.Write(append(header, data...))
-				fmt.Printf("Wrote out: %d\n", index)
 				if reason != nil {
 					lock.Lock()
 					reasons = multierr.Append(reasons, reason)
@@ -168,24 +166,17 @@ func (node *node) Run() error {
 		go func(inbound Connection) {
 			var header = make([]byte, 12)
 			for {
-				println("Waiting for header")
 				reason := inbound.Read(header)
-				println("Got header")
 				if reason != nil {
 					panic(reason)
 				}
 				var id = binary.LittleEndian.Uint64(header[0:])
 				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
-				println("waiting for data")
 				reason = inbound.Read(data)
-				println("got data")
-
 				if reason != nil {
 					panic(reason)
 				}
-				println("enqueuing")
 				node.enqueue(id, data)
-				println("finished enqueuing")
 			}
 		}(inbound)
 	}
