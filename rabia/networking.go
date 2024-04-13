@@ -192,7 +192,6 @@ func Group(address string, port uint16, addresses ...string) ([]Connection, erro
 	var connections = make([]Connection, len(addresses))
 	for i, other := range addresses {
 		//if we are trying to connect to us make a pipe
-		fmt.Printf("At: %s\n", addresses[i])
 		if other == address {
 			connections[i] = Pipe(65536)
 			for range addresses[i+1:] {
@@ -201,17 +200,14 @@ func Group(address string, port uint16, addresses ...string) ([]Connection, erro
 					return nil, reason
 				}
 				i++
-				fmt.Printf("Accepted: %s\n", client.RemoteAddr())
 				connections[i] = connection{client}
 			}
 			break
 		} else {
 			var remote = fmt.Sprintf("%s:%d", other, port)
-			fmt.Printf("Trying to cpmmect to: %s\n", remote)
 			for {
 				client, reason := dialer.Dial("tcp", remote)
 				if reason == nil {
-					fmt.Printf("Connected to: %s\n", remote)
 					connections[i] = connection{client}
 					break
 				}
