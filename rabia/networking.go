@@ -7,6 +7,7 @@ import (
 	"go.uber.org/multierr"
 	"golang.org/x/sys/unix"
 	"net"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -180,6 +181,7 @@ func FixedMulticaster(index int, name string, connections ...Connection) *Dmulti
 	return &Dmulticaster{connections: connections, Index: index, advance: false, name: &name}
 }
 func Group(address string, port uint16, addresses ...string) ([]Connection, error) {
+	sort.Sort(sort.StringSlice(addresses))
 	var listener = net.ListenConfig{Control: control}
 	var dialer = &net.Dialer{Control: control}
 	var local = fmt.Sprintf("%s:%d", address, port)
