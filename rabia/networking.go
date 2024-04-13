@@ -212,8 +212,6 @@ func Group(address string, port uint16, addresses ...string) ([]Connection, erro
 					fmt.Printf("Connected to: %s\n", remote)
 					connections[i] = connection{client}
 					break
-				} else {
-					fmt.Printf("Error: %s", reason)
 				}
 			}
 		}
