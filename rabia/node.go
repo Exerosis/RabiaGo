@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"go.uber.org/multierr"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -45,6 +46,7 @@ type node struct {
 const INFO = false
 
 func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
+	sort.Sort(sort.StringSlice(addresses))
 	var size = uint32((65536 / len(pipes)) * len(pipes))
 	var queues = make([]Queue[uint64], len(pipes))
 	var removeLists = make([]map[uint64]uint64, len(pipes))
