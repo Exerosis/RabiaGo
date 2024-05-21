@@ -45,7 +45,7 @@ type node struct {
 
 const INFO = false
 
-func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error) {
+func MakeNode(address string, addresses []string, f uint16, pipes ...uint16) (Node, error) {
 	sort.Sort(sort.StringSlice(addresses))
 	var size = uint32((65536 / len(pipes)) * len(pipes))
 	var queues = make([]Queue[uint64], len(pipes))
@@ -71,7 +71,7 @@ func MakeNode(address string, addresses []string, pipes ...uint16) (Node, error)
 	if reason != nil {
 		return nil, reason
 	}
-	var log = MakeLog(uint16(len(addresses)), uint16(len(addresses))/4, size)
+	var log = MakeLog(uint16(len(addresses)), f, size)
 	return &node{
 		log, pipes, addresses, address,
 		queues, NewBlockingMap[uint64, []byte](),
