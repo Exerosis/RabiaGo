@@ -2,9 +2,11 @@ package rabia
 
 import (
 	"fmt"
+	"math/rand"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Comparator struct {
@@ -33,6 +35,7 @@ func ComparingUint64(o1, o2 any) int {
 }
 
 func ComparingProposals(o1, o2 any) int {
+	// First, compare the timestamps (lower 32 bits)
 	var first = ComparingUint64(
 		o1.(Identifier).Value&0xFFFFFFFF,
 		o2.(Identifier).Value&0xFFFFFFFF,
@@ -40,10 +43,25 @@ func ComparingProposals(o1, o2 any) int {
 	if first != 0 {
 		return first
 	}
+	// If timestamps are equal, compare the random parts (higher 32 bits)
 	return ComparingUint64(
 		o1.(Identifier).Value>>32,
 		o2.(Identifier).Value>>32,
 	)
+}
+
+func RandomProposal() uint64 {
+	var id uint64
+	for !IsValid(id) {
+		//Designed to wrap roughly every 5 minutes, this gives us
+		//5 minutes to reach consensus on each element before
+		//performance is compromised.
+		var stamp = uint64((time.Now().UnixNano() / 1000) / 14 & 0xFFFFFFFF)
+
+		//Then add 32 bits of random in case we need to break ties.
+		id = (uint64(rand.Uint32()) << 32) | stamp
+	}
+	return id
 }
 
 func GoroutineId() int {
