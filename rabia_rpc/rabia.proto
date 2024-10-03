@@ -4,12 +4,19 @@ package rabia_rpc;
 option go_package = "./rabia_rpc";
 
 service Node {
+  rpc Peek(PeekRequest) returns (PeekResponse) {}
   rpc Read(ReadRequest) returns (ReadResponse) {}
 }
 
+message PeekRequest {
+  bytes key = 1;
+}
+message PeekResponse {
+  uint64 slot = 1;
+}
 message ReadRequest {
   uint64 slot = 1;
 }
 message ReadResponse {
-  bytes value = 2;
+  bytes value = 1;
 }
