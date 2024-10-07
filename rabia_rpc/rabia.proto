@@ -12,7 +12,7 @@ message PeekRequest {
   bytes key = 1;
 }
 message PeekResponse {
-  int64 slot = 1;
+  uint64 slot = 1;
 }
 message ReadRequest {
   uint64 slot = 1;
