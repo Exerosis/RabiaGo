@@ -53,20 +53,11 @@ func (multicaster *Dmulticaster) Write(buffer []byte) error {
 	return reasons
 }
 func (multicaster *Dmulticaster) Read(buffer []byte) error {
-	var index = multicaster.Index % len(multicaster.connections)
-	connection := multicaster.connections[index]
+	connection := multicaster.connections[multicaster.Index%len(multicaster.connections)]
 	if multicaster.advance {
 		multicaster.Index++
 	}
-	var err = connection.Read(buffer)
-	if err != nil {
-		if len(multicaster.connections) == 1 {
-			return err
-		}
-		multicaster.connections = append(multicaster.connections[:index], multicaster.connections[index+1:]...)
-		return multicaster.Read(buffer)
-	}
-	return nil
+	return connection.Read(buffer)
 }
 func (multicaster *Dmulticaster) Close() error {
 	var current = multicaster.closed.Load()
