@@ -29,12 +29,14 @@ type Dmulticaster struct {
 }
 
 func (multicaster *Dmulticaster) Write(buffer []byte) error {
+	var copied = make([]byte, len(buffer))
+	copy(copied, buffer)
 	var group sync.WaitGroup
 	multicaster.done.Store(0)
 	group.Add(1)
 	for i, c := range multicaster.connections {
 		go func(i int, c Connection) {
-			_ = c.Write(buffer)
+			_ = c.Write(copied)
 			if multicaster.done.Add(0) == multicaster.Majority {
 				group.Done()
 			}
@@ -170,11 +172,11 @@ func control(network, address string, conn syscall.RawConn) error {
 	return reason
 }
 
-func Multicaster(connections ...Connection) *Dmulticaster {
-	return &Dmulticaster{connections: connections, Majority: uint32(len(connections)), advance: true}
+func Multicaster(majority uint32, connections ...Connection) *Dmulticaster {
+	return &Dmulticaster{connections: connections, Majority: majority, advance: true}
 }
-func FixedMulticaster(index int, name string, connections ...Connection) *Dmulticaster {
-	return &Dmulticaster{connections: connections, Index: uint32(index), Majority: uint32(len(connections)), advance: false, name: &name}
+func FixedMulticaster(majority uint32, index int, name string, connections ...Connection) *Dmulticaster {
+	return &Dmulticaster{connections: connections, Index: uint32(index), Majority: majority, advance: false, name: &name}
 }
 func Group(address string, port uint16, addresses ...string) ([]Connection, error) {
 	var listener = net.ListenConfig{Control: control}

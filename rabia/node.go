@@ -77,7 +77,7 @@ func MakeNode(address string, addresses []string, f uint16, pipes ...uint16) (No
 		queues, NewBlockingMap[uint64, []byte](),
 		uint64(0), int64(-1), sync.Mutex{}, index,
 		spreadersInbound, spreadersOutbound,
-		Multicaster(spreadersOutbound...), sync.Mutex{},
+		Multicaster(uint32(log.N-log.F), spreadersOutbound...), sync.Mutex{},
 		removeLists, removeLocks,
 	}, nil
 }
@@ -204,9 +204,10 @@ func (node *node) Run() error {
 				var result = fmt.Errorf("failed to connect %d: %s", index, reason)
 				reasons = multierr.Append(reasons, result)
 			}
-			var proposals = FixedMulticaster(node.index, fmt.Sprintf("Proposals Pipe [%d]", index), proposers...)
-			var states = FixedMulticaster(node.index, fmt.Sprintf("States Pipe [%d]", index), staters...)
-			var votes = FixedMulticaster(node.index, fmt.Sprintf("Votes Pipe [%d]", index), voters...)
+			var majority = uint32(log.N - log.F)
+			var proposals = FixedMulticaster(majority, node.index, fmt.Sprintf("Proposals Pipe [%d]", index), proposers...)
+			var states = FixedMulticaster(majority, node.index, fmt.Sprintf("States Pipe [%d]", index), staters...)
+			var votes = FixedMulticaster(majority, node.index, fmt.Sprintf("Votes Pipe [%d]", index), voters...)
 			info("Connected!\n")
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
