@@ -20,44 +20,41 @@ type Connection interface {
 
 type Dmulticaster struct {
 	connections []Connection
-	Index       int
+	Index       uint32
 	closed      atomic.Bool
 	advance     bool
+	Majority    uint32
+	done        atomic.Uint32
 	name        *string
 }
 
 func (multicaster *Dmulticaster) Write(buffer []byte) error {
 	var group sync.WaitGroup
-	var lock sync.Mutex
-	var reasons error
-	group.Add(len(multicaster.connections))
+	multicaster.done.Store(0)
+	group.Add(1)
 	for i, c := range multicaster.connections {
 		go func(i int, c Connection) {
-			defer group.Done()
-			//reason := connection.SetDeadline(time.Now().Add(time.Second))
-			//if reason != nil {
-			//	lock.Lock()
-			//	defer lock.Unlock()
-			//	reasons = multierr.Append(reasons, reason)
-			//	return
-			//}
-			reason := c.Write(buffer)
-			if reason != nil {
-				lock.Lock()
-				reasons = multierr.Append(reasons, reason)
-				lock.Unlock()
+			_ = c.Write(buffer)
+			if multicaster.done.Add(0) == multicaster.Majority {
+				group.Done()
 			}
 		}(i, c)
 	}
 	group.Wait()
-	return reasons
+	return nil
 }
 func (multicaster *Dmulticaster) Read(buffer []byte) error {
-	connection := multicaster.connections[multicaster.Index%len(multicaster.connections)]
-	if multicaster.advance {
-		multicaster.Index++
+	var index = multicaster.Index % uint32(len(multicaster.connections))
+	connection := multicaster.connections[index]
+	var err = connection.Read(buffer)
+	if err != nil {
+		if len(multicaster.connections) == 1 {
+			return err
+		}
+		multicaster.connections = append(multicaster.connections[:index], multicaster.connections[index+1:]...)
+		return multicaster.Read(buffer)
 	}
-	return connection.Read(buffer)
+	return nil
 }
 func (multicaster *Dmulticaster) Close() error {
 	var current = multicaster.closed.Load()
@@ -174,10 +171,10 @@ func control(network, address string, conn syscall.RawConn) error {
 }
 
 func Multicaster(connections ...Connection) *Dmulticaster {
-	return &Dmulticaster{connections: connections, advance: true}
+	return &Dmulticaster{connections: connections, Majority: uint32(len(connections)), advance: true}
 }
 func FixedMulticaster(index int, name string, connections ...Connection) *Dmulticaster {
-	return &Dmulticaster{connections: connections, Index: index, advance: false, name: &name}
+	return &Dmulticaster{connections: connections, Index: uint32(index), Majority: uint32(len(connections)), advance: false, name: &name}
 }
 func Group(address string, port uint16, addresses ...string) ([]Connection, error) {
 	var listener = net.ListenConfig{Control: control}
