@@ -46,6 +46,7 @@ func (log Log) SMR(
 	var vote uint8
 	for {
 		currentSlot, proposed, reason := messages()
+		println("like at least I got the message??")
 		if reason != nil {
 			return reason
 		}

@@ -37,7 +37,7 @@ func (multicaster *Dmulticaster) Write(buffer []byte) error {
 	for i, c := range multicaster.connections {
 		go func(i int, c Connection) {
 			_ = c.Write(copied)
-			if multicaster.done.Add(0) == multicaster.Majority {
+			if multicaster.done.Add(1) == multicaster.Majority {
 				group.Done()
 			}
 		}(i, c)
