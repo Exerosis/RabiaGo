@@ -198,8 +198,11 @@ func (node *node) Run() error {
 
 			var current = uint64(index)
 			proposers, reason := Group(node.address, pipe+1, node.addresses...)
+			println("proposers up")
 			staters, reason := Group(node.address, pipe+2, node.addresses...)
+			println("staters up")
 			voters, reason := Group(node.address, pipe+3, node.addresses...)
+			println("voters up")
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
