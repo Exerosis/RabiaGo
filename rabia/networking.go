@@ -43,10 +43,6 @@ func (multicaster *Dmulticaster) Read(buffer []byte) error {
 	connection := multicaster.connections[index]
 	var err = connection.Read(buffer)
 	if err != nil {
-		if len(multicaster.connections) == 1 {
-			return err
-		}
-		//multicaster.connections = append(multicaster.connections[:index], multicaster.connections[index+1:]...)
 		multicaster.Index++
 		return multicaster.Read(buffer)
 	}
