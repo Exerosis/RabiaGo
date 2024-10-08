@@ -52,7 +52,7 @@ func MakeNode(address string, addresses []string, f uint16, pipes ...uint16) (No
 	var removeLists = make([]map[uint64]uint64, len(pipes))
 	var removeLocks = make([]*sync.Mutex, len(pipes))
 	for i := range queues {
-		queues[i] = NewPriorityBlockingQueue[uint64](65536, func(a uint64, b uint64) int {
+		queues[i] = NewPriorityBlockingQueue[uint64](65536*5, func(a uint64, b uint64) int {
 			return ComparingProposals(a, b)
 		})
 		removeLists[i] = make(map[uint64]uint64)

@@ -70,7 +70,7 @@ func (log Log) SMR(
 			var index = log.Indices[depth]
 
 			info("Got Proposal (%d/%d): %d - %d\n", index+1, log.N-log.F, depth, proposal)
-			log.Proposals[currentSlot<<shift|index] = proposal
+			log.Proposals[depth<<shift|index] = proposal
 			log.Indices[depth] = index + 1
 		}
 

@@ -50,6 +50,7 @@ func (multicaster *Dmulticaster) Read(buffer []byte) error {
 	connection := multicaster.connections[index]
 	var err = connection.Read(buffer)
 	if err != nil {
+		println("one node failed skipping and removing!")
 		if len(multicaster.connections) == 1 {
 			return err
 		}
