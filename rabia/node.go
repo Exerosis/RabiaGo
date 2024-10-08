@@ -170,13 +170,13 @@ func (node *node) Run() error {
 			for {
 				var err = inbound.Read(header)
 				if err != nil {
-					continue
+					return
 				}
 				var id = binary.LittleEndian.Uint64(header[0:])
 				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
 				err = inbound.Read(data)
 				if err != nil {
-					continue
+					return
 				}
 				node.enqueue(id, data)
 			}
