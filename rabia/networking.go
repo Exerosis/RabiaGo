@@ -10,6 +10,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"syscall"
+	"time"
 )
 
 type Connection interface {
@@ -86,6 +87,10 @@ func (instance connection) Address() string {
 	return instance.RemoteAddr().String()
 }
 func (instance connection) Read(buffer []byte) error {
+	reason := instance.Conn.SetDeadline(time.Now().Add(time.Second))
+	if reason != nil {
+		return reason
+	}
 	for start := 0; start != len(buffer); {
 		amount, reason := instance.Conn.Read(buffer[start:])
 		if reason != nil {
