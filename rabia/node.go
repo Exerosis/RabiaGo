@@ -67,9 +67,7 @@ func MakeNode(address string, addresses []string, f uint16, pipes ...uint16) (No
 			index = i
 		}
 	}
-	println("Got to here!")
 	spreadersInbound, spreadersOutbound, reason := GroupSet(address, 25565, others...)
-	println("Spreaders up!")
 	if reason != nil {
 		return nil, reason
 	}
@@ -93,7 +91,6 @@ func (node *node) Repair(index uint64) (uint64, []byte, error) {
 }
 
 func (node *node) enqueue(id uint64, data []byte) {
-	println("enqueue called!")
 	var index = id % uint64(len(node.pipes))
 	var lock = node.removeLocks[index]
 	var list = node.removeLists[index]
@@ -171,16 +168,16 @@ func (node *node) Run() error {
 		go func(inbound Connection) {
 			var header = make([]byte, 12)
 			for {
-				reason := inbound.Read(header)
-				if reason != nil {
-					panic(reason)
-				}
+				_ = inbound.Read(header)
+				//if reason != nil {
+				//	panic(reason)
+				//}
 				var id = binary.LittleEndian.Uint64(header[0:])
 				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
-				reason = inbound.Read(data)
-				if reason != nil {
-					panic(reason)
-				}
+				_ = inbound.Read(data)
+				//if reason != nil {
+				//	panic(reason)
+				//}
 				node.enqueue(id, data)
 			}
 		}(inbound)
@@ -199,11 +196,8 @@ func (node *node) Run() error {
 
 			var current = uint64(index)
 			proposers, reason := Group(node.address, pipe+1, node.addresses...)
-			println("proposers up")
 			staters, reason := Group(node.address, pipe+2, node.addresses...)
-			println("staters up")
 			voters, reason := Group(node.address, pipe+3, node.addresses...)
-			println("voters up")
 			if reason != nil {
 				lock.Lock()
 				defer lock.Unlock()
