@@ -129,8 +129,6 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 	binary.LittleEndian.PutUint32(header[8:], uint32(len(data[0])))
 	go func() {
 		var group sync.WaitGroup
-		var lock sync.Mutex
-		var reasons error
 
 		group.Add(len(node.spreadersOutbound))
 		node.spreadLock.Lock()
@@ -140,14 +138,8 @@ func (node *node) ProposeEach(id uint64, data [][]byte) error {
 				dataIndex++ // Skip the current node's data
 			}
 			go func(connection Connection, data []byte, index int) {
-				reason := connection.Write(append(header, data...))
-				if reason != nil {
-					lock.Lock()
-					reasons = multierr.Append(reasons, reason)
-					lock.Unlock()
-				} else {
-					group.Done()
-				}
+				_ = connection.Write(append(header, data...))
+				group.Done()
 			}(connection, data[dataIndex], i)
 		}
 		group.Wait()
@@ -185,7 +177,6 @@ func (node *node) Run() error {
 
 	for index, pipe := range node.pipes {
 		go func(index int, pipe uint16, queue Queue[uint64]) {
-			fmt.Println("Well at least I'm trying lol!")
 			defer group.Done()
 			var info = func(format string, a ...interface{}) {}
 			if INFO {
@@ -208,7 +199,7 @@ func (node *node) Run() error {
 			var proposals = FixedMulticaster(majority, node.index, fmt.Sprintf("Proposals Pipe [%d]", index), proposers...)
 			var states = FixedMulticaster(majority, node.index, fmt.Sprintf("States Pipe [%d]", index), staters...)
 			var votes = FixedMulticaster(majority, node.index, fmt.Sprintf("Votes Pipe [%d]", index), voters...)
-			info("Connected!\n")
+			println("Connected!")
 			var last uint64
 			reason = log.SMR(proposals, states, votes, func() (uint16, uint64, error) {
 				next, present := queue.Poll()
