@@ -67,7 +67,9 @@ func MakeNode(address string, addresses []string, f uint16, pipes ...uint16) (No
 			index = i
 		}
 	}
+	println("Got to here!")
 	spreadersInbound, spreadersOutbound, reason := GroupSet(address, 25565, others...)
+	println("Spreaders up!")
 	if reason != nil {
 		return nil, reason
 	}
