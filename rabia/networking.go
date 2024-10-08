@@ -32,17 +32,17 @@ func (multicaster *Dmulticaster) Write(buffer []byte) error {
 	var copied = make([]byte, len(buffer))
 	copy(copied, buffer)
 	var group sync.WaitGroup
-	multicaster.done.Store(0)
-	group.Add(1)
+	//multicaster.done.Store(0)
+	group.Add(len(multicaster.connections))
 	for i, c := range multicaster.connections {
 		go func(i int, c Connection) {
 			var err = c.Write(copied)
-			if err != nil {
-				return
-			}
-			if multicaster.done.Add(1) == multicaster.Majority {
-				group.Done()
-			}
+			//if err != nil {
+			//	return
+			//}
+			//if multicaster.done.Add(1) == multicaster.Majority {
+			group.Done()
+			//}
 		}(i, c)
 	}
 	group.Wait()
