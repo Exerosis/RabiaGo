@@ -168,16 +168,16 @@ func (node *node) Run() error {
 		go func(inbound Connection) {
 			var header = make([]byte, 12)
 			for {
-				_ = inbound.Read(header)
-				//if reason != nil {
-				//	panic(reason)
-				//}
+				var err = inbound.Read(header)
+				if err != nil {
+					continue
+				}
 				var id = binary.LittleEndian.Uint64(header[0:])
 				var data = make([]byte, binary.LittleEndian.Uint32(header[8:]))
-				_ = inbound.Read(data)
-				//if reason != nil {
-				//	panic(reason)
-				//}
+				err = inbound.Read(data)
+				if err != nil {
+					continue
+				}
 				node.enqueue(id, data)
 			}
 		}(inbound)
