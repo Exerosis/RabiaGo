@@ -20,51 +20,44 @@ type Connection interface {
 
 type Dmulticaster struct {
 	connections []Connection
-	Index       uint32
+	Index       int
 	closed      atomic.Bool
 	advance     bool
-	Majority    uint32
-	done        atomic.Uint32
 	name        *string
 }
 
 func (multicaster *Dmulticaster) Write(buffer []byte) error {
-	var copied = make([]byte, len(buffer))
-	copy(copied, buffer)
 	var group sync.WaitGroup
-	//multicaster.done.Store(0)
+	var lock sync.Mutex
+	var reasons error
 	group.Add(len(multicaster.connections))
 	for i, c := range multicaster.connections {
 		go func(i int, c Connection) {
-			_ = c.Write(copied)
-			//if err != nil {
+			defer group.Done()
+			//reason := connection.SetDeadline(time.Now().Add(time.Second))
+			//if reason != nil {
+			//	lock.Lock()
+			//	defer lock.Unlock()
+			//	reasons = multierr.Append(reasons, reason)
 			//	return
 			//}
-			//if multicaster.done.Add(1) == multicaster.Majority {
-			group.Done()
-			//}
+			reason := c.Write(buffer)
+			if reason != nil {
+				lock.Lock()
+				reasons = multierr.Append(reasons, reason)
+				lock.Unlock()
+			}
 		}(i, c)
 	}
 	group.Wait()
-	return nil
+	return reasons
 }
 func (multicaster *Dmulticaster) Read(buffer []byte) error {
-	var index = multicaster.Index % uint32(len(multicaster.connections))
-	connection := multicaster.connections[index]
-	var err = connection.Read(buffer)
-	if err != nil {
-		println("one node failed skipping and removing!")
-		if len(multicaster.connections) == 1 {
-			return err
-		}
-		//multicaster.connections = append(multicaster.connections[:index], multicaster.connections[index+1:]...)
-		multicaster.Index++
-		return multicaster.Read(buffer)
-	}
+	connection := multicaster.connections[multicaster.Index%len(multicaster.connections)]
 	if multicaster.advance {
 		multicaster.Index++
 	}
-	return nil
+	return connection.Read(buffer)
 }
 func (multicaster *Dmulticaster) Close() error {
 	var current = multicaster.closed.Load()
@@ -89,10 +82,6 @@ func (instance connection) Address() string {
 	return instance.RemoteAddr().String()
 }
 func (instance connection) Read(buffer []byte) error {
-	//reason := instance.Conn.SetDeadline(time.Now().Add(time.Second))
-	//if reason != nil {
-	//	return reason
-	//}
 	for start := 0; start != len(buffer); {
 		amount, reason := instance.Conn.Read(buffer[start:])
 		if reason != nil {
@@ -185,10 +174,10 @@ func control(network, address string, conn syscall.RawConn) error {
 }
 
 func Multicaster(majority uint32, connections ...Connection) *Dmulticaster {
-	return &Dmulticaster{connections: connections, Majority: majority, advance: true}
+	return &Dmulticaster{connections: connections, advance: true}
 }
 func FixedMulticaster(majority uint32, index int, name string, connections ...Connection) *Dmulticaster {
-	return &Dmulticaster{connections: connections, Index: uint32(index), Majority: majority, advance: false, name: &name}
+	return &Dmulticaster{connections: connections, Index: index, advance: false, name: &name}
 }
 func Group(address string, port uint16, addresses ...string) ([]Connection, error) {
 	var listener = net.ListenConfig{Control: control}
