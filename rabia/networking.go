@@ -28,36 +28,32 @@ type Dmulticaster struct {
 
 func (multicaster *Dmulticaster) Write(buffer []byte) error {
 	var group sync.WaitGroup
-	var lock sync.Mutex
-	var reasons error
 	group.Add(len(multicaster.connections))
 	for i, c := range multicaster.connections {
 		go func(i int, c Connection) {
-			defer group.Done()
-			//reason := connection.SetDeadline(time.Now().Add(time.Second))
-			//if reason != nil {
-			//	lock.Lock()
-			//	defer lock.Unlock()
-			//	reasons = multierr.Append(reasons, reason)
-			//	return
-			//}
-			reason := c.Write(buffer)
-			if reason != nil {
-				lock.Lock()
-				reasons = multierr.Append(reasons, reason)
-				lock.Unlock()
-			}
+			_ = c.Write(buffer)
+			group.Done()
 		}(i, c)
 	}
 	group.Wait()
-	return reasons
+	return nil
 }
 func (multicaster *Dmulticaster) Read(buffer []byte) error {
-	connection := multicaster.connections[multicaster.Index%len(multicaster.connections)]
+	var index = multicaster.Index % len(multicaster.connections)
+	connection := multicaster.connections[index]
+	var err = connection.Read(buffer)
+	if err != nil {
+		if len(multicaster.connections) == 1 {
+			return err
+		}
+		//multicaster.connections = append(multicaster.connections[:index], multicaster.connections[index+1:]...)
+		multicaster.Index++
+		return multicaster.Read(buffer)
+	}
 	if multicaster.advance {
 		multicaster.Index++
 	}
-	return connection.Read(buffer)
+	return nil
 }
 func (multicaster *Dmulticaster) Close() error {
 	var current = multicaster.closed.Load()
