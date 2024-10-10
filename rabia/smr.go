@@ -106,17 +106,17 @@ func (log Log) SMR(
 		} else {
 			state = 0
 		}
-		if highest == 1 || highest >= log.N-log.F { // highest == 1 || highest >= log.N-log.F
-			println("Into optimization instead: ", highest)
-			if highest == 1 {
-				proposed = SKIP
-			}
-			reason = commit(currentSlot, proposed)
-			if reason != nil {
-				return reason
-			}
-			goto cleanup
-		}
+		//if highest == 1 || highest >= log.N-log.F { // highest == 1 || highest >= log.N-log.F
+		//	println("Into optimization instead: ", highest)
+		//	if highest == 1 {
+		//		proposed = SKIP
+		//	}
+		//	reason = commit(currentSlot, proposed)
+		//	if reason != nil {
+		//		return reason
+		//	}
+		//	goto cleanup
+		//}
 		info("Got here\n")
 		for {
 			var height = currentSlot<<8 | uint16(phase)
