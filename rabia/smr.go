@@ -56,7 +56,7 @@ func (log Log) SMR(
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", currentSlot, proposed)
-		for log.Indices[currentSlot] < log.N {
+		for log.Indices[currentSlot] < log.N-log.F {
 			reason := proposes.Read(buffer[:SizeProvider])
 			if reason != nil {
 				return reason
@@ -74,8 +74,9 @@ func (log Log) SMR(
 			log.Indices[depth] = index + 1
 		}
 
-		highest = 0
-		for i := uint16(0); i < log.N; i++ {
+		highest = 1
+		proposed = log.Proposals[currentSlot<<shift]
+		for i := uint16(1); i < log.N-log.F; i++ {
 			var proposal = log.Proposals[currentSlot<<shift|i]
 			if proposal == proposed {
 				highest++
