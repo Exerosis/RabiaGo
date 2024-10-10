@@ -223,25 +223,25 @@ func (log Log) SMR(
 			}
 		}
 	cleanup:
-		//buffer[2] = state
-		//reason = states.Write(buffer[:SizeState])
-		//info("Sent Cleanup State: %d(%d) - 1\n", currentSlot, phase)
-		//if reason != nil {
-		//	return reason
-		//}
-		//reason = votes.Write(buffer[:SizeVote])
-		//info("Sent Cleanup Vote: %d(%d) - 1\n", currentSlot, phase)
-		//if reason != nil {
-		//	return reason
-		//}
-		//var next = currentSlot<<8 | uint16(phase)
-		//log.VotesZero[next] = 0
-		//log.VotesOne[next] = 0
-		//log.VotesLost[next] = 0
-		//log.StatesZero[next] = 0
-		//log.StatesOne[next] = 0
-		//for i := uint16(0); i < log.N; i++ {
-		//	log.Proposals[currentSlot<<shift|i] = 0
-		//}
+		buffer[2] = state
+		reason = states.Write(buffer[:SizeState])
+		info("Sent Cleanup State: %d(%d) - 1\n", currentSlot, phase)
+		if reason != nil {
+			return reason
+		}
+		reason = votes.Write(buffer[:SizeVote])
+		info("Sent Cleanup Vote: %d(%d) - 1\n", currentSlot, phase)
+		if reason != nil {
+			return reason
+		}
+		var next = currentSlot<<8 | uint16(phase)
+		log.VotesZero[next] = 0
+		log.VotesOne[next] = 0
+		log.VotesLost[next] = 0
+		log.StatesZero[next] = 0
+		log.StatesOne[next] = 0
+		for i := uint16(0); i < log.N; i++ {
+			log.Proposals[currentSlot<<shift|i] = 0
+		}
 	}
 }
