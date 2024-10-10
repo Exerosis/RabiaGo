@@ -37,6 +37,7 @@ func (log Log) SMR(
 	var buffer = make([]byte, SizeBuffer)
 	var half = uint16(len(log.Logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.N)))) + 1
+	var optimize = log.N >= (4*log.F)+1
 
 	var count = uint16(0)
 	var highest = uint16(0)
@@ -101,9 +102,9 @@ func (log Log) SMR(
 		} else {
 			state = 0
 		}
-		if highest == 1 || highest >= log.N-log.F { // highest == 1 || highest >= log.N-log.F
+		if optimize && (highest == 1 || highest >= log.N-log.F) {
+			println("Optimization Running: ", highest)
 			if highest == 1 {
-				println("Into optimization instead: ", highest)
 				proposed = SKIP
 			}
 			reason = commit(currentSlot, proposed)
@@ -112,7 +113,6 @@ func (log Log) SMR(
 			}
 			goto cleanup
 		}
-		info("Got here\n")
 		for {
 			var height = currentSlot<<8 | uint16(phase)
 			LittleEndian.PutUint16(buffer[0:], currentSlot)
