@@ -14,6 +14,7 @@ const SizeState = 3 * Multiplier
 
 const NONE = 0
 const SKIP = math.MaxUint64
+const FAST = true
 
 func IsValid(id uint64) bool {
 	return id != 0 && id < SKIP
@@ -37,7 +38,7 @@ func (log Log) SMR(
 	var buffer = make([]byte, SizeBuffer)
 	var half = uint16(len(log.Logs) / 2)
 	var shift = uint32(math.Floor(math.Log2(float64(log.N)))) + 1
-	var optimize = log.N >= (4*log.F)+1
+	var optimize = FAST && log.N >= (4*log.F)+1
 
 	var count = uint16(0)
 	var highest = uint16(0)
@@ -103,7 +104,7 @@ func (log Log) SMR(
 			state = 0
 		}
 		if optimize && (highest == 1 || highest >= log.N-log.F) {
-			println("Optimization Running: ", highest)
+			info("Optimization Running: %d\n", highest)
 			if highest == 1 {
 				proposed = SKIP
 			}
