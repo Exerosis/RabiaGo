@@ -56,7 +56,7 @@ func (log Log) SMR(
 			return reason
 		}
 		info("Sent Proposal: %d - %d\n", currentSlot, proposed)
-		for log.Indices[currentSlot] < log.N-log.F {
+		for log.Indices[currentSlot] < log.N {
 			reason := proposes.Read(buffer[:SizeProvider])
 			if reason != nil {
 				return reason
