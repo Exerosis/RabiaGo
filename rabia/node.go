@@ -43,7 +43,7 @@ type node struct {
 	removeLocks []*sync.Mutex
 }
 
-const INFO = true
+const INFO = false
 
 func MakeNode(address string, addresses []string, f uint16, pipes ...uint16) (Node, error) {
 	sort.Sort(sort.StringSlice(addresses))
