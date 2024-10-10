@@ -95,28 +95,23 @@ func (log Log) SMR(
 		}
 		info("Loop Found Majority: %dx %d\n", highest, proposed)
 
-		log.Indices[currentSlot] = 0
-		for i := uint16(0); i < log.N; i++ {
-			log.Proposals[currentSlot<<shift|i] = 0
-		}
-
 		phase = 0
 		if highest >= log.Majority {
 			state = 1
 		} else {
 			state = 0
 		}
-		//if highest == 1 || highest >= log.N-log.F { // highest == 1 || highest >= log.N-log.F
-		//	println("Into optimization instead: ", highest)
-		//	if highest == 1 {
-		//		proposed = SKIP
-		//	}
-		//	reason = commit(currentSlot, proposed)
-		//	if reason != nil {
-		//		return reason
-		//	}
-		//	goto cleanup
-		//}
+		if highest >= log.N-log.F { // highest == 1 || highest >= log.N-log.F
+			println("Into optimization instead: ", highest)
+			//if highest == 1 {
+			//	proposed = SKIP
+			//}
+			reason = commit(currentSlot, proposed)
+			if reason != nil {
+				return reason
+			}
+			goto cleanup
+		}
 		info("Got here\n")
 		for {
 			var height = currentSlot<<8 | uint16(phase)
@@ -240,6 +235,7 @@ func (log Log) SMR(
 		log.VotesLost[next] = 0
 		log.StatesZero[next] = 0
 		log.StatesOne[next] = 0
+		log.Indices[currentSlot] = 0
 		for i := uint16(0); i < log.N; i++ {
 			log.Proposals[currentSlot<<shift|i] = 0
 		}
