@@ -106,11 +106,11 @@ func (log Log) SMR(
 		} else {
 			state = 0
 		}
-		if highest >= log.N-log.F { // highest == 1 || highest >= log.N-log.F
-			println("Into optimization instead.\n")
-			//if highest == 1 {
-			//	proposed = SKIP
-			//}
+		if highest == 1 || highest >= log.N-log.F { // highest == 1 || highest >= log.N-log.F
+			println("Into optimization instead: ", highest)
+			if highest == 1 {
+				proposed = SKIP
+			}
 			reason = commit(currentSlot, proposed)
 			if reason != nil {
 				return reason
